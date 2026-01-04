@@ -1,0 +1,58 @@
+# General
+.DS_Store
+.idea/
+.vscode/
+*.swp
+*.log
+.env
+
+# Flutter / Dart
+src/frontend/.dart_tool/
+src/frontend/.flutter-plugins
+src/frontend/.flutter-plugins-dependencies
+src/frontend/.packages
+src/frontend/.pub-cache/
+src/frontend/.pub/
+src/frontend/build/
+src/frontend/flutter_export.pdf
+src/frontend/flutter_01.png
+
+# Flutter - Android
+src/frontend/android/local.properties
+src/frontend/android/.gradle
+src/frontend/android/app/build/
+src/frontend/android/*.iml
+src/frontend/android/app/*.iml
+
+# Flutter - iOS
+src/frontend/ios/Flutter/Generated.xcconfig
+src/frontend/ios/Flutter/app.flx
+src/frontend/ios/Flutter/app.zip
+src/frontend/ios/Flutter/flutter_assets/
+src/frontend/ios/ServiceDefinitions.json
+src/frontend/ios/Runner/GeneratedPluginRegistrant.*
+
+# Flutter - Linux
+src/frontend/linux/flutter/ephemeral/
+
+# Python / FastAPI Backend
+src/backend/__pycache__/
+src/backend/*.py[cod]
+src/backend/venv/
+src/backend/.venv/
+src/backend/env/
+src/backend/.env
+src/backend/.pytest_cache/
+src/backend/.coverage
+src/backend/htmlcov/
+
+# Node / JS (if needed later)
+node_modules/
+npm-debug.log
+yarn-error.log
+
+# Terraform / Infrastructure
+infrastructure/.terraform/
+infrastructure/*.tfstate
+infrastructure/*.tfstate.backup
+infrastructure/.terraform.lock.hcl
