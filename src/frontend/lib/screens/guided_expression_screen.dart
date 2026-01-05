@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'speaker_flow_screen.dart'; 
 import 'shared_closing_screen.dart';
+import 'start_screen.dart';
 
 class GuidedExpressionScreen extends StatefulWidget {
   final String sessionId;
@@ -76,6 +77,18 @@ class _GuidedExpressionScreenState extends State<GuidedExpressionScreen> {
           final participants = data['participants'] as List<dynamic>;
           final turnsCompleted = (data['turns_completed'] ?? 0) as int;
           final isSpeaker = _uid == currentSpeakerId;
+
+          if (sessionStatus == 'finished') {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (mounted) {
+                Navigator.of(context).pushAndRemoveUntil(
+                  MaterialPageRoute(builder: (context) => const StartScreen()),
+                  (route) => false,
+                );
+              }
+            });
+            return const Scaffold(body: Center(child: CircularProgressIndicator()));
+          }
 
           if (sessionStatus == 'shared_closing') {
              return SharedClosingScreen(sessionId: widget.sessionId);

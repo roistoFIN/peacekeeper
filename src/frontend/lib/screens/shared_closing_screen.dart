@@ -1,8 +1,48 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'start_screen.dart';
 
 class SharedClosingScreen extends StatelessWidget {
   final String sessionId;
   const SharedClosingScreen({super.key, required this.sessionId});
+
+  Future<List<String>> _fetchEmotions() async {
+    try {
+      final snapshot = await FirebaseFirestore.instance
+          .collection('sessions')
+          .doc(sessionId)
+          .collection('participant_states')
+          .get();
+
+      final Set<String> allEmotions = {};
+      for (var doc in snapshot.docs) {
+        final data = doc.data();
+        if (data['emotions'] != null) {
+          final List<dynamic> emotions = data['emotions'];
+          allEmotions.addAll(emotions.cast<String>());
+        }
+      }
+      return allEmotions.toList();
+    } catch (e) {
+      return [];
+    }
+  }
+
+  Future<void> _endSession(BuildContext context) async {
+    // 1. Mark session as finished (invalidating the code effectively)
+    await FirebaseFirestore.instance
+        .collection('sessions')
+        .doc(sessionId)
+        .update({'status': 'finished'});
+
+    // 2. Return to start
+    if (context.mounted) {
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (context) => const StartScreen()),
+        (route) => false,
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -33,22 +73,39 @@ class SharedClosingScreen extends StatelessWidget {
                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 16),
-                // TODO: Fetch and display actual emotions from Firestore history if desired
-                const Text(
-                  "– vulnerability\n– hope", // Placeholder
-                  style: TextStyle(fontSize: 16, fontStyle: FontStyle.italic, color: Colors.grey),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 60),
-                OutlinedButton(
-                  onPressed: () {
-                    // Navigate back to start (simulating app restart)
-                    Navigator.of(context).popUntil((route) => route.isFirst);
+                
+                // Dynamic Emotion List
+                FutureBuilder<List<String>>(
+                  future: _fetchEmotions(),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const CircularProgressIndicator();
+                    }
+                    if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                      return const Text("–", style: TextStyle(color: Colors.grey));
+                    }
+                    
+                    return Column(
+                      children: snapshot.data!.map((emotion) => Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 4),
+                        child: Text(
+                          "– $emotion",
+                          style: const TextStyle(fontSize: 18, fontStyle: FontStyle.italic, color: Colors.black87),
+                        ),
+                      )).toList(),
+                    );
                   },
-                  style: OutlinedButton.styleFrom(
+                ),
+                
+                const SizedBox(height: 60),
+                
+                FilledButton(
+                  onPressed: () => _endSession(context),
+                  style: FilledButton.styleFrom(
                     padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                    backgroundColor: Colors.blueGrey,
                   ),
-                  child: const Text("Return to Start"),
+                  child: const Text("Thank you for trying", style: TextStyle(fontSize: 18)),
                 ),
               ],
             ),

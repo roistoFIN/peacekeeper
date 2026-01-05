@@ -247,7 +247,6 @@ Neutral summary:
 
 Options:
 
-* “Return to this later”
 * “Thank you for trying”
 
 ---
