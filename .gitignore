@@ -35,6 +35,11 @@ src/frontend/ios/Runner/GeneratedPluginRegistrant.*
 # Flutter - Linux
 src/frontend/linux/flutter/ephemeral/
 
+# Firebase Configuration (Sensitive/Project-specific)
+src/frontend/android/app/google-services.json
+src/frontend/ios/Runner/GoogleService-Info.plist
+src/frontend/lib/firebase_options.dart
+
 # Python / FastAPI Backend
 src/backend/__pycache__/
 src/backend/*.py[cod]
