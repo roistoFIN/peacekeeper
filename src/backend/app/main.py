@@ -23,6 +23,9 @@ app.add_middleware(
 
 # Initialize profanity filter
 profanity.load_censor_words()
+# Add custom blame patterns to block
+custom_bad_words = ['you must', 'you always', 'you never', 'always', 'never']
+profanity.add_censor_words(custom_bad_words)
 
 class TextCheckRequest(BaseModel):
     text: str
