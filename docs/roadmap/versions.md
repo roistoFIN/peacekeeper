@@ -23,10 +23,13 @@
 * Session ending
 * Disclaimer at the beginning (not therapy, methods used)
 * Breathing back to 60 seconds
+* Instructions not to speak/yell but rather use the app to help to do constructing conversation
+* Ads
 
 ## Version 0.2
 
 * Paid features
+* Pay to get rid of ads
 * Multilanguage
 * QR code joining
 * Personal user accounts
