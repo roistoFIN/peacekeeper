@@ -20,7 +20,9 @@
 * Reflection screen
 * Change turns (screen?)
 * Shared closing screen
-* Session ening
+* Session ending
+* Disclaimer at the beginning (not therapy, methods used)
+* Breathing back to 60 seconds
 
 ## Version 0.2
 

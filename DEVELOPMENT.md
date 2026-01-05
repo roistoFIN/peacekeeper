@@ -44,20 +44,33 @@ Since sensitive files like `google-services.json` and `firebase_options.dart` ar
 
 ## 4. Backend Setup (FastAPI)
 
-1.  **Create a virtual environment**:
+1.  **Navigate to backend directory**:
     ```bash
     cd src/backend
+    ```
+
+2.  **Create and Activate Virtual Environment**:
+    ```bash
     python -m venv venv
     source venv/bin/activate
     ```
-2.  **Install dependencies**:
+
+3.  **Install dependencies**:
     ```bash
     pip install -r requirements.txt
     ```
-3.  **Run locally**:
+
+4.  **Authenticate GCP (Required for Firebase)**:
+    If running natively (not in Docker), you must provide credentials:
+    ```bash
+    gcloud auth application-default login
+    ```
+
+5.  **Run locally**:
     ```bash
     uvicorn app.main:app --reload
     ```
+    The server will run at `http://127.0.0.1:8000`.
 
 ## 5. Deployment (GCP)
 
