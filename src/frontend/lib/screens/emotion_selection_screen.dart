@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'dart:math';
 import '../services/safety_service.dart';
+import '../services/content_service.dart';
 import 'waiting_screen.dart';
 
 class EmotionSelectionScreen extends StatefulWidget {
@@ -14,21 +15,31 @@ class EmotionSelectionScreen extends StatefulWidget {
 }
 
 class _EmotionSelectionScreenState extends State<EmotionSelectionScreen> {
-  final List<String> _emotions = [
-    'Angry',
-    'Hurt',
-    'Unsafe',
-    'Disappointed',
-    'Lonely',
-    'Confused',
-    'I don\'t know',
-    'I don\'t want to say'
-  ];
+  // Dynamic Data
+  final ContentService _contentService = ContentService();
+  Map<String, dynamic> _vocabulary = {};
+  bool _isLoading = true;
 
   final List<String> _selectedEmotions = [];
   final TextEditingController _fearController = TextEditingController();
   bool _isSubmitting = false;
   final SafetyService _safetyService = SafetyService();
+
+  @override
+  void initState() {
+    super.initState();
+    _loadVocabulary();
+  }
+
+  Future<void> _loadVocabulary() async {
+    final vocab = await _contentService.fetchVocabulary();
+    if (mounted) {
+      setState(() {
+        _vocabulary = vocab;
+        _isLoading = false;
+      });
+    }
+  }
 
   void _toggleEmotion(String emotion) {
     setState(() {
@@ -96,12 +107,10 @@ class _EmotionSelectionScreenState extends State<EmotionSelectionScreen> {
       final statesSnapshot = await sessionRef.collection('participant_states').get();
       final participants = statesSnapshot.docs;
       
-      // We expect 2 participants. If both have 'status' == 'emotions_selected', we proceed.
       bool allReady = participants.length == 2 && 
           participants.every((doc) => doc.data()['status'] == 'emotions_selected');
 
       if (allReady) {
-        // Randomly pick who speaks first
         final speakerId = participants[Random().nextInt(participants.length)].id;
         
         await sessionRef.update({
@@ -134,6 +143,14 @@ class _EmotionSelectionScreenState extends State<EmotionSelectionScreen> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
+    if (_isLoading) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
+
+    // Parse Feelings Data
+    final feelingsData = _vocabulary['feelings'] as Map<String, dynamic>? ?? {};
+    final categories = (feelingsData['categories'] as List<dynamic>?) ?? [];
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('My Feelings'),
@@ -155,28 +172,47 @@ class _EmotionSelectionScreenState extends State<EmotionSelectionScreen> {
                 style: TextStyle(color: Colors.black54),
               ),
               const SizedBox(height: 24),
-              Wrap(
-                spacing: 12,
-                runSpacing: 12,
-                children: _emotions.map((emotion) {
-                  final isSelected = _selectedEmotions.contains(emotion);
-                  return FilterChip(
-                    label: Text(emotion),
-                    selected: isSelected,
-                    onSelected: (_) => _toggleEmotion(emotion),
-                    selectedColor: theme.colorScheme.primaryContainer,
-                    checkmarkColor: theme.colorScheme.onPrimaryContainer,
-                    labelStyle: TextStyle(
-                      color: isSelected 
-                        ? theme.colorScheme.onPrimaryContainer 
-                        : Colors.black87,
-                      fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+              
+              if (categories.isEmpty) const Text("No vocabulary loaded."),
+
+              ...categories.map((cat) {
+                final catName = cat['name'];
+                final words = (cat['words'] as List<dynamic>).cast<String>();
+                
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 8.0),
+                      child: Text(catName, style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: theme.colorScheme.primary)),
                     ),
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
-                  );
-                }).toList(),
-              ),
-              const SizedBox(height: 40),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: words.map((word) {
+                        final isSelected = _selectedEmotions.contains(word);
+                        return FilterChip(
+                          label: Text(word),
+                          selected: isSelected,
+                          onSelected: (_) => _toggleEmotion(word),
+                          selectedColor: theme.colorScheme.primaryContainer,
+                          checkmarkColor: theme.colorScheme.onPrimaryContainer,
+                          labelStyle: TextStyle(
+                            color: isSelected 
+                              ? theme.colorScheme.onPrimaryContainer 
+                              : Colors.black87,
+                            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                          ),
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                        );
+                      }).toList(),
+                    ),
+                    const Divider(height: 32),
+                  ],
+                );
+              }),
+
+              const SizedBox(height: 20),
               const Text(
                 'What is the biggest fear right now?',
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
@@ -186,7 +222,7 @@ class _EmotionSelectionScreenState extends State<EmotionSelectionScreen> {
                 controller: _fearController,
                 maxLines: 3,
                 decoration: InputDecoration(
-                  hintText: 'e.g., I am afraid that...', 
+                  hintText: 'e.g., I am afraid that...',
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
