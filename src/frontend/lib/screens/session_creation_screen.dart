@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'dart:math';
+import 'regulation_screen.dart';
 
 class SessionCreationScreen extends StatefulWidget {
   const SessionCreationScreen({super.key});
@@ -59,12 +60,16 @@ class _SessionCreationScreenState extends State<SessionCreationScreen> {
         if (snapshot.exists) {
           final data = snapshot.data();
           if (data != null && data['status'] == 'active') {
-             // TODO: Navigate to the next phase (Shared Regulation)
              if (mounted) {
                setState(() {
                  status = "connected";
                });
-               // Navigation would happen here
+               Navigator.pushReplacement(
+                 context,
+                 MaterialPageRoute(
+                   builder: (context) => RegulationScreen(sessionId: code),
+                 ),
+               );
              }
           }
         }

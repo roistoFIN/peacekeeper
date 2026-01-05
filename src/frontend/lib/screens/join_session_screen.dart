@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'regulation_screen.dart';
 
 class JoinSessionScreen extends StatefulWidget {
   const JoinSessionScreen({super.key});
@@ -82,9 +83,11 @@ class _JoinSessionScreenState extends State<JoinSessionScreen> {
 
       if (mounted) {
         Navigator.pop(context); // Close loading dialog
-        // Navigate to Shared Regulation (placeholder for now)
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Connected! Starting session...")),
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => RegulationScreen(sessionId: code),
+          ),
         );
       }
     } catch (e) {
