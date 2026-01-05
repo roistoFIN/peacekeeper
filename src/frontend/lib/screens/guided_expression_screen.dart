@@ -146,7 +146,7 @@ class _GuidedExpressionScreenState extends State<GuidedExpressionScreen> {
 
     // Extract emotions for the reflection options
     final emotions = List<String>.from(message['emotions'] ?? []);
-    final primaryEmotion = emotions.isNotEmpty ? emotions.first : '...';
+    final emotionsText = emotions.join(' & '); // Join multiple emotions
 
     return Padding(
       padding: const EdgeInsets.all(24.0),
@@ -166,7 +166,7 @@ class _GuidedExpressionScreenState extends State<GuidedExpressionScreen> {
               children: [
                 Text("When ${message['observation']}", style: const TextStyle(fontSize: 16)),
                 const SizedBox(height: 4),
-                Text("I feel ${emotions.join(' & ')}", style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                Text("I feel $emotionsText", style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                 const SizedBox(height: 4),
                 Text("because I need ${message['need']}.", style: const TextStyle(fontSize: 16)),
               ],
@@ -176,11 +176,11 @@ class _GuidedExpressionScreenState extends State<GuidedExpressionScreen> {
           const Text("Reflect back what you heard:", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
           const SizedBox(height: 16),
           
-          _buildReflectionOption("I heard that you are feeling $primaryEmotion."),
+          _buildReflectionOption("I heard that you are feeling $emotionsText."),
           const SizedBox(height: 12),
-          _buildReflectionOption("I understand this made you feel $primaryEmotion."),
+          _buildReflectionOption("I understand this made you feel $emotionsText."),
           const SizedBox(height: 12),
-          _buildReflectionOption("It sounds like you are feeling $primaryEmotion."),
+          _buildReflectionOption("It sounds like you are feeling $emotionsText."),
         ],
       ),
     );
@@ -190,18 +190,23 @@ class _GuidedExpressionScreenState extends State<GuidedExpressionScreen> {
     return OutlinedButton(
       onPressed: () {
         // TODO: Complete the turn (Phase 6)
-        // For now, just show a dialog or reset
         FirebaseFirestore.instance
             .collection('sessions')
             .doc(widget.sessionId)
-            .update({'status': 'turn_complete'}); // Placeholder status
+            .update({'status': 'turn_complete'}); 
       },
       style: OutlinedButton.styleFrom(
-        padding: const EdgeInsets.symmetric(vertical: 16),
+        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
         alignment: Alignment.centerLeft,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
-      child: Text(text, style: const TextStyle(fontSize: 16, color: Colors.black87)),
+      child: Text(
+        text, 
+        style: const TextStyle(fontSize: 16, color: Colors.black87),
+        softWrap: true,
+        maxLines: null,
+        overflow: TextOverflow.visible,
+      ),
     );
   }
 
