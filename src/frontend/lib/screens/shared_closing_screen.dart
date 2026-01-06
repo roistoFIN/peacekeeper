@@ -8,15 +8,18 @@ class SharedClosingScreen extends StatelessWidget {
 
   Future<List<String>> _fetchEmotions() async {
     try {
+      print("DEBUG: Fetching emotions for session: $sessionId");
       final snapshot = await FirebaseFirestore.instance
           .collection('sessions')
           .doc(sessionId)
           .collection('participant_states')
           .get();
 
+      print("DEBUG: Found ${snapshot.docs.length} participant docs");
       final Set<String> allEmotions = {};
       for (var doc in snapshot.docs) {
         final data = doc.data();
+        print("DEBUG: Doc ${doc.id} emotions: ${data['emotions']}");
         if (data['emotions'] != null) {
           final List<dynamic> emotions = data['emotions'];
           allEmotions.addAll(emotions.cast<String>());
@@ -24,6 +27,7 @@ class SharedClosingScreen extends StatelessWidget {
       }
       return allEmotions.toList();
     } catch (e) {
+      print("DEBUG: Error fetching emotions: $e");
       return [];
     }
   }

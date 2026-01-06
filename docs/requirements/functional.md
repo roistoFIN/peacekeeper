@@ -81,11 +81,9 @@ The next step is unavailable until the timer completes.
 
 ---
 
-### 3. Emotion – Private Phase (EFT)
+### 3. Transition to Guided Expression
 
-Each user individually selects:
-
-* 1–2 emotions:
+After regulation, the app transitions directly to the guided workflow.
 
 ---
 
@@ -94,120 +92,69 @@ Each user individually selects:
 The app randomly selects who speaks first.
 
 **Speaker**
-
-* Initially sees: *“Waiting for the other person to be ready to listen.”*
-* Then sees the guided expression interface with a **120-second timer**
+*   Sees the guided expression interface with a **120-second timer**.
+*   The timer starts when the listener confirms readiness.
+*   The session ends for both if the timer reaches zero.
 
 **Listener**
-
-* Sees a button: *“I’m ready to listen”*
-* After pressing it:
-
-> “Listen. Do not interrupt. You will get your turn.”
+*   Sees a button: *“I’m ready to listen”*.
+*   After pressing it, sees: *"Waiting for expression..."* while the speaker is in the wizard.
 
 ---
 
-## Guided Expression UI (Speaker)
+## Guided Expression Workflow (AI-Enhanced)
 
-The interface is step-based and **not fully free-text**.
+The workflow is broken into four distinct phases to lower the "Limbic load" on the user. Each phase includes accumulated context from previous steps.
 
-### Screen 1: Observation (no blame)
+### Phase 1: Observation (The "When...")
+**UI Logic:**
+*   A single text field limited to **200 characters** with a sticky "When " prefix.
 
-Title:
-
-> “What happened – without blame?”
-
-Emotion selected in Phase 3 constrains suggested wording.
-
-Examples:
-
-* “When yesterday ___”
-* “When you said ___”
-* “When something was not done ___”
-
-Tip:
-
-> “Describe what happened like a video camera – no opinions.”
+**AI Integration:**
+*   Gemini analyzes the draft for judgmental language or interpretations.
+*   **Offensive Gate:** If flagged as judgmental, the user is **blocked** from proceeding.
+*   **Suggestions:** Gemini suggests 1-3 neutral alternatives. Tapping one replaces the text and allows progress.
 
 ---
 
-### Screen 2: Emotion (pre-filled from Phase 3)
+### Phase 2: Feelings (The "I feel...")
+**UI Logic:**
+*   Shows Step 1 context.
+*   Users select 1–2 chips from dynamic categories (Sadness, Fear, Anger, Confusion).
 
-Select 1–2 emotions again for confirmation.
-“You”-statements are blocked.
-
----
-
-### Screen 3: Need (EFT + NVC)
-
-Select:
-
-* to be heard
-* to receive support
-* to feel safe
-* to feel appreciated
-* to gain clarity
-
-Text:
-
-> “I felt ___ because I need ___.”
+**AI Integration:**
+*   Gemini suggests 3 "likely" feelings based on Phase 1. Users can toggle these or select others.
 
 ---
 
-### Screen 4: Request (not a demand)
+### Phase 3: Needs (The "Because I need...")
+**UI Logic:**
+*   Shows Step 1 & 2 context.
+*   Users select 1–2 needs from categories (Connection, Autonomy, Peace, Meaning).
 
-Allowed formats:
-
-* “Would you be willing to ___?”
-* “Could you ___?”
-* “Could we try ___?”
-
-Blocked:
-
-* “You must…”
-* “Always / never”
+**AI Integration:**
+*   Gemini suggests 3 needs based on selected feelings.
 
 ---
 
-### Screen 5: Final Combined Message (Preview)
+### Phase 4: Request (The "Would you be willing...?")
+**UI Logic:**
+*   Shows Step 1, 2, & 3 context.
+*   A text field limited to **200 characters** with a sticky *"Would you be willing to "* prefix.
 
-Preview:
-
-> “When ___ happened, I felt ___ because I need ___.
-> Would you be willing to ___?”
-
-Button:
-
-> **“This feels fair – continue”**
+**AI Integration:**
+*   **Offensive Gate:** Identical to Step 1. Blocks progress if the request is a demand or offensive.
+*   **Refinement:** Suggests 1-3 positive, actionable alternatives.
 
 ---
 
-### Safety Mechanisms (All Input Fields)
+### 5. Reflection Phase (Listener Side)
 
-* Profanity blocked
-* Blaming phrases trigger suggestions
-* Overly long messages are truncated
-
----
-
-### 5. Reflection (Listener)
-
-After the speaker’s timer ends, the listener:
-
-* Sees the speaker’s message
-* Is prompted:
-
-> “Select the sentence that best reflects what you heard.”
-
-Only reflection options matching the speaker’s selected emotion are shown.
-
-Examples:
-
-* “I heard that you felt unsafe.”
-* “I understood that this made you feel lonely.”
-* “I may have misunderstood—please correct me.”
-
-The speaker sees the selected reflection once sent.
+**The Repair Attempt:**
+*   Gemini generates a cohesive **Reflection Statement** for the listener to read aloud.
+*   **Perspective Shift:** AI correctly reverses roles (e.g., if speaker says "When you...", listener says "When I...").
+*   **Commitment:** The statement includes an acknowledgement of feelings/needs and a willingness to consider behavioral change.
+*   The listener must confirm they have shared the reflection to complete the turn.
 
 ---
 

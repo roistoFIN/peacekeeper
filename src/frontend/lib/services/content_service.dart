@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
+import 'package:firebase_auth/firebase_auth.dart';
 
 class ContentService {
   String get _baseUrl {
@@ -10,7 +11,8 @@ class ContentService {
     return 'http://127.0.0.1:8000';
   }
 
-  // Fetch Feelings and Needs from Backend (which pulls from Firestore)
+  String? get _uid => FirebaseAuth.instance.currentUser?.uid;
+
   Future<Map<String, dynamic>> fetchVocabulary() async {
     try {
       final response = await http.get(Uri.parse('$_baseUrl/content/vocabulary'));
@@ -24,44 +26,88 @@ class ContentService {
     }
   }
 
-  // Validate Step 1: Observation
-  Future<ValidationResult> validateObservation(String text) async {
-    return _validateEndpoint('/validate/observation', text);
+  // --- AI Endpoints ---
+
+  Future<AIResult> neutralizeObservation(String text) async {
+    return _callAI('/ai/neutralize-observation', text);
   }
 
-  // Validate Step 2: Feelings (Check for pseudo-feelings)
-  Future<ValidationResult> validateFeelingText(String text) async {
-    return _validateEndpoint('/validate/feelings', text);
+  Future<AIResult> suggestFeelings(String observation) async {
+    return _callAI('/ai/suggest-feelings', observation);
   }
 
-  Future<ValidationResult> _validateEndpoint(String endpoint, String text) async {
+  Future<AIResult> suggestNeeds(String observation, List<String> feelings) async {
+    return _callAI('/ai/suggest-needs', observation, context: {'feelings': feelings.join(", ")});
+  }
+
+  Future<AIResult> refineRequest(String request, Map<String, dynamic> context) async {
+    return _callAI('/ai/refine-request', request, context: context);
+  }
+
+  Future<AIResult> generateReflection(Map<String, dynamic> context) async {
+    return _callAI('/ai/generate-reflection', "", context: context);
+  }
+
+  Future<AIResult> _callAI(String path, String text, {Map<String, dynamic>? context}) async {
+    if (_uid == null) return AIResult(error: "User not authenticated");
+
     try {
+      print(">>> AI REQUEST: $path");
+      print(">>> TEXT: $text");
+      
       final response = await http.post(
-        Uri.parse('$_baseUrl$endpoint'),
+        Uri.parse('$_baseUrl$path'),
         headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({'text': text}),
+        body: jsonEncode({
+          'user_id': _uid,
+          'text': text,
+          'context': context,
+        }),
       );
 
+      print("<<< AI RESPONSE ($path): ${response.statusCode}");
+      
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
-        return ValidationResult(
-          isValid: data['is_valid'] ?? true,
-          reason: data['reason'],
-          suggestion: data['suggestion'],
+        print("<<< RESULT: ${data['result']}");
+        return AIResult(
+          result: data['result'],
+          alternatives: data['alternatives'] != null ? List<String>.from(data['alternatives']) : null,
+          isOffensive: data['is_offensive'] ?? false,
         );
+      } else {
+        print("<<< ERROR BODY: ${response.body}");
+        if (response.statusCode == 429) {
+          final data = jsonDecode(response.body);
+          return AIResult(error: "Rate limited", retryAfter: data['detail']['retry_after']);
+        }
+        return AIResult(error: "Server error: ${response.statusCode}");
       }
     } catch (e) {
-      debugPrint("Validation error: $e");
+      print("!!! AI EXCEPTION: $e");
+      return AIResult(error: e.toString());
     }
-    // Default to valid if server is unreachable (fail open for prototype)
-    return ValidationResult(isValid: true);
   }
 }
 
-class ValidationResult {
-  final bool isValid;
-  final String? reason;
-  final String? suggestion;
+class AIResult {
 
-  ValidationResult({required this.isValid, this.reason, this.suggestion});
+  final dynamic result;
+
+  final List<String>? alternatives;
+
+  final bool isOffensive;
+
+  final String? error;
+
+  final int? retryAfter;
+
+
+
+  AIResult({this.result, this.alternatives, this.isOffensive = false, this.error, this.retryAfter});
+
+
+
+  bool get hasError => error != null;
+
 }
