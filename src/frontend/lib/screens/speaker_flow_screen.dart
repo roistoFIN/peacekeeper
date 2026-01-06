@@ -38,6 +38,108 @@ class _SpeakerFlowScreenState extends State<SpeakerFlowScreen> {
   String? _lastVettedText;
   String? _lastVettedRequest;
 
+  // Instructions Data
+  static const Map<String, Map<String, dynamic>> _stepInstructions = {
+    'observation': {
+      'title': 'Observations',
+      'short': 'Describe what is happening without adding judgment.',
+      'detail': 'Describe what is happening without adding judgment, evaluation, or "always/never" labels. It is like a camera recording a scene.',
+      'impulsive': "You're always lazy with the dishes.",
+      'nvc': "When I saw the dishes in the sink this morning..."
+    },
+    'feelings': {
+      'title': 'Feelings',
+      'short': 'Name your internal emotion.',
+      'detail': "Name your internal emotion. Crucially, NVC distinguishes between true feelings and interpretations of others' actions (e.g., 'I feel ignored' is an interpretation; 'I feel lonely' is a feeling).",
+      'impulsive': "I feel like you don't care about me.",
+      'nvc': "...I felt frustrated and overwhelmed."
+    },
+    'needs': {
+      'title': 'Needs',
+      'short': 'Connect the feeling to a universal human need.',
+      'detail': "Connect the feeling to a universal human need. This is the 'why' behind the emotion. It’s hard to argue with a basic human need like 'respect' or 'order'.",
+      'impulsive': "I need you to grow up.",
+      'nvc': "...because I have a need for support and shared responsibility."
+    },
+    'request': {
+      'title': 'Requests',
+      'short': 'Make a specific, positive, and doable request.',
+      'detail': "Make a specific, positive, and doable request. It must be something the person can do, and it must be a request, not a demand (they can say 'no').",
+      'impulsive': "Clean up after yourself for once.",
+      'nvc': "...Would you be willing to empty the dishwasher before work tomorrow?"
+    }
+  };
+
+  void _showHelp(BuildContext context, String stepKey) {
+    final content = _stepInstructions[stepKey]!;
+    showModalBottomSheet(
+      context: context,
+      showDragHandle: true,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (context) => Padding(
+        padding: const EdgeInsets.fromLTRB(24, 0, 24, 40),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(Icons.lightbulb_outline, color: Theme.of(context).primaryColor),
+                const SizedBox(width: 12),
+                Text(content['title']!, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+              ],
+            ),
+            const SizedBox(height: 16),
+            Text(content['detail']!, style: const TextStyle(fontSize: 16, height: 1.5, color: Colors.black87)),
+            const SizedBox(height: 24),
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.red.shade50,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.red.shade100),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text("IMPULSIVE (Avoid)", style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.red)),
+                  const SizedBox(height: 4),
+                  Text('"${content['impulsive']}"', style: const TextStyle(fontStyle: FontStyle.italic)),
+                ],
+              ),
+            ),
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.green.shade50,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.green.shade100),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text("NVC WAY (Try this)", style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.green)),
+                  const SizedBox(height: 4),
+                  Text('"${content['nvc']}"', style: const TextStyle(fontStyle: FontStyle.italic)),
+                ],
+              ),
+            ),
+            const SizedBox(height: 24),
+            SizedBox(
+              width: double.infinity,
+              child: FilledButton.tonal(
+                onPressed: () => Navigator.pop(context),
+                child: const Text("Got it"),
+              ),
+            )
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   void initState() {
     super.initState();
@@ -176,8 +278,8 @@ class _SpeakerFlowScreenState extends State<SpeakerFlowScreen> {
             physics: const NeverScrollableScrollPhysics(),
             children: [
               _buildObservationStep(),
-              _buildSelectionStep(title: "I feel...", dataKey: 'feelings', selectedItems: _selectedFeelings, aiSuggestions: _aiSuggestedFeelings, maxItems: 2, onContinue: _nextPage, showObs: true),
-              _buildSelectionStep(title: "Because I need...", dataKey: 'needs', selectedItems: _selectedNeeds, aiSuggestions: _aiSuggestedNeeds, maxItems: 2, onContinue: _nextPage, showObs: true, showFeelings: true),
+              _buildSelectionStep(stepKey: 'feelings', title: "I feel...", dataKey: 'feelings', selectedItems: _selectedFeelings, aiSuggestions: _aiSuggestedFeelings, maxItems: 2, onContinue: _nextPage, showObs: true),
+              _buildSelectionStep(stepKey: 'needs', title: "Because I need...", dataKey: 'needs', selectedItems: _selectedNeeds, aiSuggestions: _aiSuggestedNeeds, maxItems: 2, onContinue: _nextPage, showObs: true, showFeelings: true),
               _buildRequestStep(),
               _buildPreviewStep(),
             ],
@@ -263,9 +365,21 @@ class _SpeakerFlowScreenState extends State<SpeakerFlowScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const Text("Step 1: Observation", style: TextStyle(color: Colors.grey, fontWeight: FontWeight.bold)),
-          const SizedBox(height: 16),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text("Step 1: Observation", style: TextStyle(color: Colors.grey, fontWeight: FontWeight.bold)),
+              IconButton(
+                onPressed: () => _showHelp(context, 'observation'),
+                icon: const Icon(Icons.help_outline, size: 20, color: Colors.blueGrey),
+                visualDensity: VisualDensity.compact,
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
           const Text("What happened?", style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+          const SizedBox(height: 8),
+          Text(_stepInstructions['observation']!['short']!, style: const TextStyle(fontSize: 14, color: Colors.black54)),
           const SizedBox(height: 24),
           TextField(controller: _observationController, maxLength: 200, maxLines: 2, decoration: const InputDecoration(prefixText: 'When ', border: OutlineInputBorder(), filled: true)),
           _buildAlternativesBox(_observationController, "Next"),
@@ -290,7 +404,7 @@ class _SpeakerFlowScreenState extends State<SpeakerFlowScreen> {
     );
   }
 
-  Widget _buildSelectionStep({required String title, required String dataKey, required List<String> selectedItems, required List<String> aiSuggestions, required int maxItems, required VoidCallback onContinue, bool showObs = false, bool showFeelings = false}) {
+  Widget _buildSelectionStep({required String stepKey, required String title, required String dataKey, required List<String> selectedItems, required List<String> aiSuggestions, required int maxItems, required VoidCallback onContinue, bool showObs = false, bool showFeelings = false}) {
     final sectionData = _vocabulary[dataKey] as Map<String, dynamic>? ?? {};
     final categories = (sectionData['categories'] as List<dynamic>?) ?? [];
     return SingleChildScrollView(
@@ -299,7 +413,19 @@ class _SpeakerFlowScreenState extends State<SpeakerFlowScreen> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           _buildPreviousContext(showObs: showObs, showFeelings: showFeelings),
-          Text(title, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(child: Text(title, style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold))),
+              IconButton(
+                onPressed: () => _showHelp(context, stepKey),
+                icon: const Icon(Icons.help_outline, size: 20, color: Colors.blueGrey),
+                visualDensity: VisualDensity.compact,
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(_stepInstructions[stepKey]!['short']!, style: const TextStyle(fontSize: 14, color: Colors.black54)),
           const SizedBox(height: 16),
           if (aiSuggestions.isNotEmpty) ...[
             const Text("AI Suggestions:", style: TextStyle(color: Colors.blue, fontWeight: FontWeight.bold)),
@@ -324,9 +450,21 @@ class _SpeakerFlowScreenState extends State<SpeakerFlowScreen> {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           _buildPreviousContext(showObs: true, showFeelings: true, showNeeds: true),
-          const Text("Step 4: Request", style: TextStyle(color: Colors.grey, fontWeight: FontWeight.bold)),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text("Step 4: Request", style: TextStyle(color: Colors.grey, fontWeight: FontWeight.bold)),
+              IconButton(
+                onPressed: () => _showHelp(context, 'request'),
+                icon: const Icon(Icons.help_outline, size: 20, color: Colors.blueGrey),
+                visualDensity: VisualDensity.compact,
+              ),
+            ],
+          ),
           const SizedBox(height: 16),
           const Text("What would help?", style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+          const SizedBox(height: 8),
+          Text(_stepInstructions['request']!['short']!, style: const TextStyle(fontSize: 14, color: Colors.black54)),
           const SizedBox(height: 24),
           TextField(controller: _requestController, maxLength: 200, maxLines: 2, decoration: const InputDecoration(prefixText: "Would you be willing to ", border: OutlineInputBorder(), filled: true)),
           _buildAlternativesBox(_requestController, "Preview"),

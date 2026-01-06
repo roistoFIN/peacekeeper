@@ -16,7 +16,7 @@ class StartScreen extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               const Text(
-                'Peacekeeper',
+                'Peacekeeper: Couples Coach',
                 style: TextStyle(
                   fontSize: 36,
                   fontWeight: FontWeight.bold,
