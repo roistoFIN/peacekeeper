@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'dart:math';
-import '../services/safety_service.dart';
 import '../services/content_service.dart';
 import 'waiting_screen.dart';
 
@@ -21,9 +20,7 @@ class _EmotionSelectionScreenState extends State<EmotionSelectionScreen> {
   bool _isLoading = true;
 
   final List<String> _selectedEmotions = [];
-  final TextEditingController _fearController = TextEditingController();
   bool _isSubmitting = false;
-  final SafetyService _safetyService = SafetyService();
 
   @override
   void initState() {
@@ -69,27 +66,6 @@ class _EmotionSelectionScreenState extends State<EmotionSelectionScreen> {
       final user = FirebaseAuth.instance.currentUser;
       if (user == null) throw Exception("No user found");
 
-      String fearText = _fearController.text.trim();
-      
-      // Safety Check
-      if (fearText.isNotEmpty) {
-        final safetyResult = await _safetyService.checkText(fearText);
-        if (safetyResult.flagged) {
-           if (mounted) {
-             ScaffoldMessenger.of(context).showSnackBar(
-               SnackBar(
-                 content: Text('Language unsafe. Suggestion: "${safetyResult.censoredText}"'),
-                 backgroundColor: Colors.red,
-               ),
-             );
-             setState(() {
-               _isSubmitting = false;
-             });
-             return;
-           }
-        }
-      }
-
       // Save to Firestore
       final sessionRef = FirebaseFirestore.instance.collection('sessions').doc(widget.sessionId);
       
@@ -98,7 +74,6 @@ class _EmotionSelectionScreenState extends State<EmotionSelectionScreen> {
           .doc(user.uid)
           .set({
         'emotions': _selectedEmotions,
-        'fear': fearText,
         'status': 'emotions_selected',
         'updatedAt': FieldValue.serverTimestamp(),
       });
@@ -212,24 +187,6 @@ class _EmotionSelectionScreenState extends State<EmotionSelectionScreen> {
                 );
               }),
 
-              const SizedBox(height: 20),
-              const Text(
-                'What is the biggest fear right now?',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
-              ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: _fearController,
-                maxLines: 3,
-                decoration: InputDecoration(
-                  hintText: 'e.g., I am afraid that...',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  filled: true,
-                  fillColor: theme.colorScheme.surfaceVariant.withOpacity(0.3),
-                ),
-              ),
               const SizedBox(height: 40),
               FilledButton(
                 onPressed: _isSubmitting ? null : _submit,

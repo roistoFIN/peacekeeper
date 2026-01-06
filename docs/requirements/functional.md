@@ -87,21 +87,6 @@ Each user individually selects:
 
 * 1–2 emotions:
 
-  * angry
-  * hurt
-  * unsafe
-  * disappointed
-  * lonely
-  * confused
-  * I don’t know
-  * I don’t want to say
-
-Follow-up (free text allowed):
-
-> “What is the biggest fear right now?”
-
-This information is **not yet visible to the other person**.
-
 ---
 
 ### 4. Guided Expression (One speaks, one listens)
