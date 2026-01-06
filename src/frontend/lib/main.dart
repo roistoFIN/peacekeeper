@@ -25,7 +25,7 @@ class PeacekeeperApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Peacekeeper',
+      title: 'Peacekeeper: Couples Coach',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         useMaterial3: true,

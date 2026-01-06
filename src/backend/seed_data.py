@@ -3,8 +3,10 @@ from firebase_admin import credentials, firestore
 import os
 
 # Initialize Firebase (relies on GOOGLE_APPLICATION_CREDENTIALS or local login)
+PROJECT_ID = os.getenv("GOOGLE_CLOUD_PROJECT", "peacekeeper-483320")
+
 if not firebase_admin._apps:
-    firebase_admin.initialize_app()
+    firebase_admin.initialize_app(options={'projectId': PROJECT_ID})
 
 db = firestore.client()
 

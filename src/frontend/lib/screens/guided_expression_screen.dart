@@ -170,7 +170,7 @@ class _GuidedExpressionScreenState extends State<GuidedExpressionScreen> {
                   const SizedBox(width: 8),
                   Text("$_secondsRemaining s", style: const TextStyle(fontSize: 16)),
                 ] else
-                  const Text("Peacekeeper"),
+                  const Text("Peacekeeper: Couples Coach"),
               ],
             ),
             actions: [

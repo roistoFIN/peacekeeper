@@ -18,7 +18,7 @@ REGION = "us-central1"
 
 # Initialize Firebase
 if not firebase_admin._apps:
-    firebase_admin.initialize_app()
+    firebase_admin.initialize_app(options={'projectId': PROJECT_ID})
 
 db = firestore.client()
 

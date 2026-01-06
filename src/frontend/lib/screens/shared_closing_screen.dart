@@ -33,13 +33,7 @@ class SharedClosingScreen extends StatelessWidget {
   }
 
   Future<void> _endSession(BuildContext context) async {
-    // 1. Mark session as finished (invalidating the code effectively)
-    await FirebaseFirestore.instance
-        .collection('sessions')
-        .doc(sessionId)
-        .update({'status': 'finished'});
-
-    // 2. Return to start
+    // Return to start for this user only
     if (context.mounted) {
       Navigator.of(context).pushAndRemoveUntil(
         MaterialPageRoute(builder: (context) => const StartScreen()),

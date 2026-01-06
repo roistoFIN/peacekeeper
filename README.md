@@ -1,4 +1,4 @@
-# peacekeeper
+# Peacekeeper: Couples Coach
 An application that helps during an active conflict. In-the-moment conflict coaching.
 
 Project Goal: Self-help conflict coaching that guides a structured process rather than promising clinical treatment.
