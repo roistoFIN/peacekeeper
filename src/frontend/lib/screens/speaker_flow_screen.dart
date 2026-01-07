@@ -322,12 +322,29 @@ class _SpeakerFlowScreenState extends State<SpeakerFlowScreen> {
     );
   }
 
-  Widget _buildAlternativesBox(TextEditingController controller, String nextButtonLabel) {
+  Widget _buildAlternativesBox(TextEditingController controller, String nextButtonLabel, {String? stoppingQuestion}) {
     if (_aiAlternatives.isEmpty) return const SizedBox();
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const SizedBox(height: 16),
+        if (_isOffensive && stoppingQuestion != null)
+          Container(
+            margin: const EdgeInsets.only(bottom: 16),
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.amber.shade50,
+              border: Border.all(color: Colors.amber.shade200),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.pause_circle_outline, color: Colors.amber, size: 24),
+                const SizedBox(width: 12),
+                Expanded(child: Text(stoppingQuestion, style: TextStyle(fontWeight: FontWeight.bold, color: Colors.amber.shade900))),
+              ],
+            ),
+          ),
         Text(_isOffensive ? "That sounds judgmental. Try these facts instead:" : "AI Suggestion:", style: TextStyle(fontWeight: FontWeight.bold, color: _isOffensive ? Colors.orange.shade800 : Colors.blue)),
         const SizedBox(height: 8),
         ..._aiAlternatives.map((alt) => Padding(
@@ -382,7 +399,7 @@ class _SpeakerFlowScreenState extends State<SpeakerFlowScreen> {
           Text(_stepInstructions['observation']!['short']!, style: const TextStyle(fontSize: 14, color: Colors.black54)),
           const SizedBox(height: 24),
           TextField(controller: _observationController, maxLength: 200, maxLines: 2, decoration: const InputDecoration(prefixText: 'When ', border: OutlineInputBorder(), filled: true)),
-          _buildAlternativesBox(_observationController, "Next"),
+          _buildAlternativesBox(_observationController, "Next", stoppingQuestion: "Am I certain about this interpretation?"),
           const Spacer(),
           _buildStepButtons(
             onNext: () async {
@@ -467,7 +484,7 @@ class _SpeakerFlowScreenState extends State<SpeakerFlowScreen> {
           Text(_stepInstructions['request']!['short']!, style: const TextStyle(fontSize: 14, color: Colors.black54)),
           const SizedBox(height: 24),
           TextField(controller: _requestController, maxLength: 200, maxLines: 2, decoration: const InputDecoration(prefixText: "Would you be willing to ", border: OutlineInputBorder(), filled: true)),
-          _buildAlternativesBox(_requestController, "Preview"),
+          _buildAlternativesBox(_requestController, "Preview", stoppingQuestion: "Is my partner bad, or simply different from me?"),
           const Spacer(),
           _buildStepButtons(
             onNext: () async {
