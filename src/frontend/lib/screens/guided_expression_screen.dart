@@ -136,6 +136,18 @@ class _GuidedExpressionScreenState extends State<GuidedExpressionScreen> {
         final data = snapshot.data!.data() as Map<String, dynamic>;
         final sessionStatus = data['status'];
 
+        // Navigation triggers
+        if (sessionStatus == 'shared_closing') {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted) {
+              Navigator.of(context).pushReplacement(
+                MaterialPageRoute(builder: (context) => SharedClosingScreen(sessionId: widget.sessionId)),
+              );
+            }
+          });
+          return const Scaffold(body: Center(child: CircularProgressIndicator()));
+        }
+
         // If other user quit
         if (sessionStatus == 'finished') {
           WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -185,8 +197,6 @@ class _GuidedExpressionScreenState extends State<GuidedExpressionScreen> {
   }
 
   Widget _buildContent(Map<String, dynamic> data, bool isSpeaker, String listenerStatus, String sessionStatus, String currentSpeakerId, List<dynamic> participants, int turnsCompleted) {
-    if (sessionStatus == 'shared_closing') return SharedClosingScreen(sessionId: widget.sessionId);
-
     if (sessionStatus == 'turn_complete') {
       return _buildTurnCompleteView(currentSpeakerId, participants, turnsCompleted);
     }

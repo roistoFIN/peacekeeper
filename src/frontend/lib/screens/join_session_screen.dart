@@ -119,7 +119,7 @@ class _JoinSessionScreenState extends State<JoinSessionScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Join Session'),
+        title: const Text('Peacekeeper: Couples Coach'),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.of(context).pop(),

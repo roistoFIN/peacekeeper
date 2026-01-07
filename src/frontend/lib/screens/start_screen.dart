@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'session_creation_screen.dart';
 import 'join_session_screen.dart';
+import 'feedback_screen.dart';
 
 class StartScreen extends StatelessWidget {
   const StartScreen({super.key});
@@ -111,6 +112,11 @@ class StartScreen extends StatelessWidget {
         backgroundColor: Colors.transparent,
         elevation: 0,
         actions: [
+          IconButton(
+            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const FeedbackScreen())),
+            icon: const Icon(Icons.feedback_outlined, color: Colors.blueGrey),
+            tooltip: 'Send Feedback',
+          ),
           IconButton(
             onPressed: () => _showAppInfo(context),
             icon: const Icon(Icons.info_outline, color: Colors.blueGrey),

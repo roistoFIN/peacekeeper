@@ -90,6 +90,7 @@ class _SessionCreationScreenState extends State<SessionCreationScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        title: const Text("Peacekeeper: Couples Coach"),
         leading: IconButton(
           icon: const Icon(Icons.close),
           onPressed: () => Navigator.of(context).pop(),

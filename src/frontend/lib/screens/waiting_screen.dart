@@ -53,6 +53,7 @@ class _WaitingScreenState extends State<WaitingScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        title: const Text("Peacekeeper: Couples Coach"),
         automaticallyImplyLeading: false,
         actions: [
           TextButton.icon(
