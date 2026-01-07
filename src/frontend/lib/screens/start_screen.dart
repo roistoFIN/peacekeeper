@@ -5,9 +5,120 @@ import 'join_session_screen.dart';
 class StartScreen extends StatelessWidget {
   const StartScreen({super.key});
 
+  void _showAppInfo(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      showDragHandle: true,
+      isScrollControlled: true,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (context) => DraggableScrollableSheet(
+        initialChildSize: 0.6,
+        minChildSize: 0.4,
+        maxChildSize: 0.9,
+        expand: false,
+        builder: (context, scrollController) => SingleChildScrollView(
+          controller: scrollController,
+          padding: const EdgeInsets.fromLTRB(24, 0, 24, 40),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Icon(Icons.info_outline, color: Theme.of(context).primaryColor, size: 28),
+                  const SizedBox(width: 12),
+                  const Text("About Peacekeeper", style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+                ],
+              ),
+              const SizedBox(height: 24),
+              const Text("Purpose", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 8),
+              const Text(
+                "Peacekeeper is a self-help conflict coaching tool designed to help couples de-escalate arguments in real-time. It guides you through a structured process to slow down the conversation and reduce impulsive reactions.",
+                style: TextStyle(fontSize: 16, height: 1.5, color: Colors.black87),
+              ),
+              const SizedBox(height: 24),
+              const Text("Scientific Basis", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 8),
+              const Text(
+                "The application is built on proven frameworks for effective communication and emotional regulation:",
+                style: TextStyle(fontSize: 16, height: 1.5, color: Colors.black87),
+              ),
+              const SizedBox(height: 8),
+              _buildBulletPoint("Gottman Method (Flooding & Repair)"),
+              _buildBulletPoint("Polyvagal Theory (Nervous System Regulation)"),
+              _buildBulletPoint("Emotionally Focused Therapy (EFT)"),
+              _buildBulletPoint("Nonviolent Communication (NVC)"),
+              _buildBulletPoint("CBT-lite (Interrupting Distortions)"),
+              const SizedBox(height: 24),
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.amber.shade50,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.amber.shade200),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        const Icon(Icons.warning_amber_rounded, color: Colors.amber, size: 24),
+                        const SizedBox(width: 8),
+                        Text("LEGAL DISCLAIMER", style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.amber.shade900)),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    const Text(
+                      "This application is NOT a substitute for professional therapy or counseling. It is a communication tool to help you discuss difficult topics more safely. If you are in immediate danger or fear for your safety, please contact emergency services immediately.",
+                      style: TextStyle(fontSize: 14, height: 1.4, color: Colors.black87),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 32),
+              SizedBox(
+                width: double.infinity,
+                child: FilledButton.tonal(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text("Got it"),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBulletPoint(String text) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 4.0),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text("• ", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+          Expanded(child: Text(text, style: const TextStyle(fontSize: 16, color: Colors.black87))),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        actions: [
+          IconButton(
+            onPressed: () => _showAppInfo(context),
+            icon: const Icon(Icons.info_outline, color: Colors.blueGrey),
+            tooltip: 'About this app',
+          ),
+          const SizedBox(width: 16),
+        ],
+      ),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 24.0),
