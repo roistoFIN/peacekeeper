@@ -1,17 +1,26 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'start_screen.dart';
+import 'feedback_screen.dart';
 
-class SharedClosingScreen extends StatelessWidget {
+class SharedClosingScreen extends StatefulWidget {
   final String sessionId;
   const SharedClosingScreen({super.key, required this.sessionId});
 
+  @override
+  State<SharedClosingScreen> createState() => _SharedClosingScreenState();
+}
+
+class _SharedClosingScreenState extends State<SharedClosingScreen> {
+  int? _selectedRating;
+
   Future<List<String>> _fetchEmotions() async {
     try {
-      print("DEBUG: Fetching emotions for session: $sessionId");
+      print("DEBUG: Fetching emotions for session: ${widget.sessionId}");
       final snapshot = await FirebaseFirestore.instance
           .collection('sessions')
-          .doc(sessionId)
+          .doc(widget.sessionId)
           .collection('participant_states')
           .get();
 
@@ -32,6 +41,39 @@ class SharedClosingScreen extends StatelessWidget {
     }
   }
 
+  Future<void> _rateSession(int rating) async {
+    setState(() => _selectedRating = rating);
+    
+    // 1. Save rating
+    try {
+      final uid = FirebaseAuth.instance.currentUser?.uid;
+      if (uid != null) {
+         await FirebaseFirestore.instance.collection('sessions').doc(widget.sessionId).set({
+           'ratings': {uid: rating}
+         }, SetOptions(merge: true));
+      }
+    } catch (e) {
+      debugPrint("Error saving rating: $e");
+    }
+
+    // 2. Logic: If 1 star, open feedback
+    if (rating == 1) {
+      if (mounted) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => FeedbackScreen(sessionId: widget.sessionId, initialRating: rating)),
+        );
+      }
+    } else {
+      // Show simple thanks
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Thank you for your rating!")),
+        );
+      }
+    }
+  }
+
   Future<void> _endSession(BuildContext context) async {
     // Return to start for this user only
     if (context.mounted) {
@@ -45,6 +87,20 @@ class SharedClosingScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        title: const Text("Peacekeeper: Couples Coach"),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        automaticallyImplyLeading: false,
+        actions: [
+          IconButton(
+            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => FeedbackScreen(sessionId: widget.sessionId))),
+            icon: const Icon(Icons.feedback_outlined, color: Colors.blueGrey),
+            tooltip: 'Send Feedback',
+          ),
+          const SizedBox(width: 16),
+        ],
+      ),
       body: SafeArea(
         child: Center(
           child: Padding(
@@ -95,7 +151,25 @@ class SharedClosingScreen extends StatelessWidget {
                   },
                 ),
                 
-                const SizedBox(height: 60),
+                const SizedBox(height: 48),
+                const Text("How helpful was this session?", style: TextStyle(color: Colors.grey)),
+                const SizedBox(height: 16),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: List.generate(5, (index) {
+                    final starRating = index + 1;
+                    return IconButton(
+                      onPressed: () => _rateSession(starRating),
+                      icon: Icon(
+                        _selectedRating != null && starRating <= _selectedRating! ? Icons.star : Icons.star_border,
+                        size: 36,
+                        color: Colors.amber,
+                      ),
+                    );
+                  }),
+                ),
+
+                const SizedBox(height: 48),
                 
                 FilledButton(
                   onPressed: () => _endSession(context),

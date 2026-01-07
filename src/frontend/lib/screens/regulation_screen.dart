@@ -99,6 +99,7 @@ class _RegulationScreenState extends State<RegulationScreen> with SingleTickerPr
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        title: const Text("Peacekeeper: Couples Coach"),
         backgroundColor: Colors.transparent,
         elevation: 0,
         automaticallyImplyLeading: false,
