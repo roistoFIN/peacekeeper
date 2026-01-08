@@ -2,6 +2,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'guided_expression_screen.dart';
 import 'start_screen.dart';
+import '../services/subscription_service.dart';
+import 'paywall_screen.dart';
 
 class WaitingScreen extends StatefulWidget {
   final String sessionId;
@@ -12,10 +14,18 @@ class WaitingScreen extends StatefulWidget {
 }
 
 class _WaitingScreenState extends State<WaitingScreen> {
+  bool _isPremium = false;
+
   @override
   void initState() {
     super.initState();
+    _checkPremium();
     _listenForPhaseChange();
+  }
+
+  Future<void> _checkPremium() async {
+    final status = await SubscriptionService.isPremium();
+    if (mounted) setState(() => _isPremium = status);
   }
 
   void _listenForPhaseChange() {
@@ -56,6 +66,15 @@ class _WaitingScreenState extends State<WaitingScreen> {
         title: const Text("Peacekeeper: Couples Coach"),
         automaticallyImplyLeading: false,
         actions: [
+          if (!_isPremium)
+            TextButton.icon(
+              onPressed: () async {
+                await Navigator.push(context, MaterialPageRoute(builder: (context) => const PaywallScreen()));
+                _checkPremium();
+              },
+              icon: const Icon(Icons.diamond, color: Colors.purple),
+              label: const Text("Get Premium", style: TextStyle(color: Colors.purple, fontWeight: FontWeight.bold)),
+            ),
           TextButton.icon(
             onPressed: () async {
               final confirmed = await showDialog<bool>(

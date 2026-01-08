@@ -1,10 +1,41 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'session_creation_screen.dart';
 import 'join_session_screen.dart';
 import 'feedback_screen.dart';
+import 'paywall_screen.dart';
+import '../services/subscription_service.dart';
 
-class StartScreen extends StatelessWidget {
+class StartScreen extends StatefulWidget {
   const StartScreen({super.key});
+
+  @override
+  State<StartScreen> createState() => _StartScreenState();
+}
+
+class _StartScreenState extends State<StartScreen> {
+  bool _isPremium = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _ensureAuthAndCheckPremium();
+  }
+
+  Future<void> _ensureAuthAndCheckPremium() async {
+    // 1. Ensure Auth
+    if (FirebaseAuth.instance.currentUser == null) {
+      try {
+        await FirebaseAuth.instance.signInAnonymously();
+      } catch (e) {
+        debugPrint("Auth error: $e");
+      }
+    }
+    
+    // 2. Check Premium
+    final status = await SubscriptionService.isPremium();
+    if (mounted) setState(() => _isPremium = status);
+  }
 
   void _showAppInfo(BuildContext context) {
     showModalBottomSheet(
@@ -112,6 +143,15 @@ class StartScreen extends StatelessWidget {
         backgroundColor: Colors.transparent,
         elevation: 0,
         actions: [
+          if (!_isPremium)
+            TextButton.icon(
+              onPressed: () async {
+                await Navigator.push(context, MaterialPageRoute(builder: (context) => const PaywallScreen()));
+                _checkPremium();
+              },
+              icon: const Icon(Icons.diamond, color: Colors.purple),
+              label: const Text("Get Premium", style: TextStyle(color: Colors.purple, fontWeight: FontWeight.bold)),
+            ),
           IconButton(
             onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const FeedbackScreen())),
             icon: const Icon(Icons.feedback_outlined, color: Colors.blueGrey),

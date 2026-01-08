@@ -3,6 +3,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'dart:math';
 import 'regulation_screen.dart';
+import '../services/subscription_service.dart';
+import 'paywall_screen.dart';
 
 class SessionCreationScreen extends StatefulWidget {
   const SessionCreationScreen({super.key});
@@ -14,11 +16,18 @@ class SessionCreationScreen extends StatefulWidget {
 class _SessionCreationScreenState extends State<SessionCreationScreen> {
   String? conflictCode;
   String status = "initializing"; // initializing, waiting, connected
+  bool _isPremium = false;
 
   @override
   void initState() {
     super.initState();
+    _checkPremium();
     _createSession();
+  }
+
+  Future<void> _checkPremium() async {
+    final status = await SubscriptionService.isPremium();
+    if (mounted) setState(() => _isPremium = status);
   }
 
   Future<void> _createSession() async {
@@ -95,6 +104,17 @@ class _SessionCreationScreenState extends State<SessionCreationScreen> {
           icon: const Icon(Icons.close),
           onPressed: () => Navigator.of(context).pop(),
         ),
+        actions: [
+          if (!_isPremium)
+            TextButton.icon(
+              onPressed: () async {
+                await Navigator.push(context, MaterialPageRoute(builder: (context) => const PaywallScreen()));
+                _checkPremium();
+              },
+              icon: const Icon(Icons.diamond, color: Colors.purple),
+              label: const Text("Get Premium", style: TextStyle(color: Colors.purple, fontWeight: FontWeight.bold)),
+            ),
+        ],
         backgroundColor: Colors.transparent,
         elevation: 0,
       ),

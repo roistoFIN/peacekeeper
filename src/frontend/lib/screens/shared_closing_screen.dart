@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
+import '../services/ad_service.dart';
+import '../services/subscription_service.dart';
 import 'start_screen.dart';
 import 'feedback_screen.dart';
+import 'paywall_screen.dart';
 
 class SharedClosingScreen extends StatefulWidget {
   final String sessionId;
@@ -14,6 +18,35 @@ class SharedClosingScreen extends StatefulWidget {
 
 class _SharedClosingScreenState extends State<SharedClosingScreen> {
   int? _selectedRating;
+  bool _isPremium = true; // Default to true to hide ad while loading
+  BannerAd? _bannerAd;
+  bool _isAdLoaded = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkPremiumAndLoadAd();
+  }
+
+  @override
+  void dispose() {
+    _bannerAd?.dispose();
+    super.dispose();
+  }
+
+  Future<void> _checkPremiumAndLoadAd() async {
+    final isPremium = await SubscriptionService.isPremium();
+    if (mounted) {
+      setState(() => _isPremium = isPremium);
+      
+      if (!isPremium) {
+        _bannerAd = AdService.createBannerAd();
+        _bannerAd!.load().then((_) {
+          if (mounted) setState(() => _isAdLoaded = true);
+        });
+      }
+    }
+  }
 
   Future<List<String>> _fetchEmotions() async {
     try {
@@ -93,6 +126,15 @@ class _SharedClosingScreenState extends State<SharedClosingScreen> {
         elevation: 0,
         automaticallyImplyLeading: false,
         actions: [
+          if (!_isPremium)
+            TextButton.icon(
+              onPressed: () async {
+                await Navigator.push(context, MaterialPageRoute(builder: (context) => const PaywallScreen()));
+                _checkPremiumAndLoadAd();
+              },
+              icon: const Icon(Icons.diamond, color: Colors.purple),
+              label: const Text("Get Premium", style: TextStyle(color: Colors.purple, fontWeight: FontWeight.bold)),
+            ),
           IconButton(
             onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => FeedbackScreen(sessionId: widget.sessionId))),
             icon: const Icon(Icons.feedback_outlined, color: Colors.blueGrey),
@@ -105,81 +147,92 @@ class _SharedClosingScreenState extends State<SharedClosingScreen> {
         child: Center(
           child: Padding(
             padding: const EdgeInsets.all(24.0),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Icon(Icons.handshake_outlined, size: 80, color: Colors.blueGrey),
-                const SizedBox(height: 32),
-                const Text(
-                  "You may not have solved everything.",
-                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 16),
-                const Text(
-                  "But you stayed connected.",
-                  style: TextStyle(fontSize: 20, color: Colors.black54),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 48),
-                const Text(
-                  "Emotions present in this conversation:",
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 16),
-                
-                // Dynamic Emotion List
-                FutureBuilder<List<String>>(
-                  future: _fetchEmotions(),
-                  builder: (context, snapshot) {
-                    if (snapshot.connectionState == ConnectionState.waiting) {
-                      return const CircularProgressIndicator();
-                    }
-                    if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                      return const Text("–", style: TextStyle(color: Colors.grey));
-                    }
-                    
-                    return Column(
-                      children: snapshot.data!.map((emotion) => Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 4),
-                        child: Text(
-                          "– $emotion",
-                          style: const TextStyle(fontSize: 18, fontStyle: FontStyle.italic, color: Colors.black87),
-                        ),
-                      )).toList(),
-                    );
-                  },
-                ),
-                
-                const SizedBox(height: 48),
-                const Text("How helpful was this session?", style: TextStyle(color: Colors.grey)),
-                const SizedBox(height: 16),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: List.generate(5, (index) {
-                    final starRating = index + 1;
-                    return IconButton(
-                      onPressed: () => _rateSession(starRating),
-                      icon: Icon(
-                        _selectedRating != null && starRating <= _selectedRating! ? Icons.star : Icons.star_border,
-                        size: 36,
-                        color: Colors.amber,
-                      ),
-                    );
-                  }),
-                ),
-
-                const SizedBox(height: 48),
-                
-                FilledButton(
-                  onPressed: () => _endSession(context),
-                  style: FilledButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-                    backgroundColor: Colors.blueGrey,
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.handshake_outlined, size: 80, color: Colors.blueGrey),
+                  const SizedBox(height: 32),
+                  const Text(
+                    "You may not have solved everything.",
+                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                    textAlign: TextAlign.center,
                   ),
-                  child: const Text("Thank you for trying", style: TextStyle(fontSize: 18)),
-                ),
-              ],
+                  const SizedBox(height: 16),
+                  const Text(
+                    "But you stayed connected.",
+                    style: TextStyle(fontSize: 20, color: Colors.black54),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 48),
+                  const Text(
+                    "Emotions present in this conversation:",
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
+                  const SizedBox(height: 16),
+                  
+                  // Dynamic Emotion List
+                  FutureBuilder<List<String>>(
+                    future: _fetchEmotions(),
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return const CircularProgressIndicator();
+                      }
+                      if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                        return const Text("–", style: TextStyle(color: Colors.grey));
+                      }
+                      
+                      return Column(
+                        children: snapshot.data!.map((emotion) => Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 4),
+                          child: Text(
+                            "– $emotion",
+                            style: const TextStyle(fontSize: 18, fontStyle: FontStyle.italic, color: Colors.black87),
+                          ),
+                        )).toList(),
+                      );
+                    },
+                  ),
+            
+                  if (!_isPremium && _isAdLoaded && _bannerAd != null) ...[
+                    const SizedBox(height: 32),
+                    SizedBox(
+                      height: _bannerAd!.size.height.toDouble(),
+                      width: _bannerAd!.size.width.toDouble(),
+                      child: AdWidget(ad: _bannerAd!),
+                    ),
+                  ],
+                  
+                  const SizedBox(height: 48),
+                  const Text("How helpful was this session?", style: TextStyle(color: Colors.grey)),
+                  const SizedBox(height: 16),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: List.generate(5, (index) {
+                      final starRating = index + 1;
+                      return IconButton(
+                        onPressed: () => _rateSession(starRating),
+                        icon: Icon(
+                          _selectedRating != null && starRating <= _selectedRating! ? Icons.star : Icons.star_border,
+                          size: 36,
+                          color: Colors.amber,
+                        ),
+                      );
+                    }),
+                  ),
+            
+                  const SizedBox(height: 48),
+                  
+                  FilledButton(
+                    onPressed: () => _endSession(context),
+                    style: FilledButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                      backgroundColor: Colors.blueGrey,
+                    ),
+                    child: const Text("Thank you for trying", style: TextStyle(fontSize: 18)),
+                  ),
+                ],
+              ),
             ),
           ),
         ),

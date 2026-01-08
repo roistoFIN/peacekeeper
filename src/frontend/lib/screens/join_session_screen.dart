@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'regulation_screen.dart';
+import '../services/subscription_service.dart';
+import 'paywall_screen.dart';
 
 class JoinSessionScreen extends StatefulWidget {
   const JoinSessionScreen({super.key});
@@ -13,11 +15,18 @@ class JoinSessionScreen extends StatefulWidget {
 class _JoinSessionScreenState extends State<JoinSessionScreen> {
   final TextEditingController _codeController = TextEditingController();
   bool _isButtonEnabled = false;
+  bool _isPremium = false;
 
   @override
   void initState() {
     super.initState();
+    _checkPremium();
     _codeController.addListener(_validateInput);
+  }
+
+  Future<void> _checkPremium() async {
+    final status = await SubscriptionService.isPremium();
+    if (mounted) setState(() => _isPremium = status);
   }
 
   @override
@@ -124,6 +133,17 @@ class _JoinSessionScreenState extends State<JoinSessionScreen> {
           icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.of(context).pop(),
         ),
+        actions: [
+          if (!_isPremium)
+            TextButton.icon(
+              onPressed: () async {
+                await Navigator.push(context, MaterialPageRoute(builder: (context) => const PaywallScreen()));
+                _checkPremium();
+              },
+              icon: const Icon(Icons.diamond, color: Colors.purple),
+              label: const Text("Get Premium", style: TextStyle(color: Colors.purple, fontWeight: FontWeight.bold)),
+            ),
+        ],
       ),
       body: SafeArea(
         child: Padding(
