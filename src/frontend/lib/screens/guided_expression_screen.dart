@@ -6,6 +6,8 @@ import 'speaker_flow_screen.dart';
 import 'shared_closing_screen.dart';
 import 'start_screen.dart';
 import '../services/content_service.dart';
+import '../services/subscription_service.dart';
+import 'paywall_screen.dart';
 
 class GuidedExpressionScreen extends StatefulWidget {
   final String sessionId;
@@ -18,6 +20,7 @@ class GuidedExpressionScreen extends StatefulWidget {
 class _GuidedExpressionScreenState extends State<GuidedExpressionScreen> {
   final String _uid = FirebaseAuth.instance.currentUser!.uid;
   final ContentService _contentService = ContentService();
+  bool _isPremium = false;
   
   String? _aiReflection;
   bool _isGeneratingReflection = false;
@@ -26,6 +29,17 @@ class _GuidedExpressionScreenState extends State<GuidedExpressionScreen> {
   int _secondsRemaining = 120;
   Timer? _timer;
   bool _timerStarted = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkPremium();
+  }
+
+  Future<void> _checkPremium() async {
+    final status = await SubscriptionService.isPremium();
+    if (mounted) setState(() => _isPremium = status);
+  }
 
   @override
   void dispose() {
@@ -106,6 +120,18 @@ class _GuidedExpressionScreenState extends State<GuidedExpressionScreen> {
   Future<void> _getAIReflection(Map<String, dynamic> message) async {
     if (_aiReflection != null || _isGeneratingReflection) return;
     
+    // For free users, use fixed template
+    if (!_isPremium) {
+      final obs = message['observation'];
+      final feelings = (message['emotions'] as List).join(", ");
+      final needs = message['need'];
+      final req = message['request'];
+      setState(() {
+        _aiReflection = "I hear you saying that $obs and it made you feel $feelings and you need $needs. I'm willing to consider $req";
+      });
+      return;
+    }
+
     Future.microtask(() {
       if (mounted) setState(() => _isGeneratingReflection = true);
     });
@@ -186,6 +212,15 @@ class _GuidedExpressionScreenState extends State<GuidedExpressionScreen> {
               ],
             ),
             actions: [
+              if (!_isPremium)
+                TextButton.icon(
+                  onPressed: () async {
+                    await Navigator.push(context, MaterialPageRoute(builder: (context) => const PaywallScreen()));
+                    _checkPremium();
+                  },
+                  icon: const Icon(Icons.diamond, color: Colors.purple),
+                  label: const Text("Get Premium", style: TextStyle(color: Colors.purple, fontWeight: FontWeight.bold)),
+                ),
               IconButton(onPressed: _quitSession, icon: const Icon(Icons.exit_to_app, color: Colors.red)),
             ],
             automaticallyImplyLeading: false,

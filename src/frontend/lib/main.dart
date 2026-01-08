@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 import 'screens/start_screen.dart';
+import 'services/subscription_service.dart';
+import 'services/ad_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -10,8 +12,10 @@ void main() async {
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
     );
+    await SubscriptionService.init();
+    await AdService.init();
   } catch (e) {
-    debugPrint("Firebase initialization skipped or failed: $e");
+    debugPrint("Initialization error: $e");
     // This allows the app to run on Linux/Web even if config is missing,
     // though Auth/Firestore features will likely fail when used.
   }

@@ -1,8 +1,8 @@
-import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../services/content_service.dart';
+import '../services/subscription_service.dart';
 
 class SpeakerFlowScreen extends StatefulWidget {
   final String sessionId;
@@ -17,6 +17,7 @@ class _SpeakerFlowScreenState extends State<SpeakerFlowScreen> {
   final ContentService _contentService = ContentService();
   int _currentStep = 0;
   bool _isLoading = true;
+  bool _isPremium = false;
 
   // Data
   Map<String, dynamic> _vocabulary = {};
@@ -163,8 +164,14 @@ class _SpeakerFlowScreenState extends State<SpeakerFlowScreen> {
     final uid = FirebaseAuth.instance.currentUser!.uid;
     final userDoc = await FirebaseFirestore.instance.collection('sessions').doc(widget.sessionId).collection('participant_states').doc(uid).get();
     final preSelectedEmotions = userDoc.exists ? List<String>.from(userDoc.data()?['emotions'] ?? []) : <String>[];
+    final premiumStatus = await SubscriptionService.isPremium();
     if (mounted) {
-      setState(() { _vocabulary = vocab; _selectedFeelings.addAll(preSelectedEmotions); _isLoading = false; });
+      setState(() { 
+        _vocabulary = vocab; 
+        _selectedFeelings.addAll(preSelectedEmotions); 
+        _isPremium = premiumStatus;
+        _isLoading = false; 
+      });
     }
   }
 
@@ -190,6 +197,7 @@ class _SpeakerFlowScreenState extends State<SpeakerFlowScreen> {
 
   // --- AI Logic ---
   Future<bool> _neutralizeObservation() async {
+    if (!_isPremium) return true;
     final currentText = _observationController.text.trim();
     if (currentText.length < 5) return true;
     if (currentText == _lastVettedText) return !_isOffensive;
@@ -210,16 +218,19 @@ class _SpeakerFlowScreenState extends State<SpeakerFlowScreen> {
   }
 
   Future<void> _getFeelingsSuggestions() async {
+    if (!_isPremium) return;
     final result = await _contentService.suggestFeelings("When ${_observationController.text}");
     if (mounted && !result.hasError) setState(() => _aiSuggestedFeelings = List<String>.from(result.result));
   }
 
   Future<void> _getNeedsSuggestions() async {
+    if (!_isPremium) return;
     final result = await _contentService.suggestNeeds("When ${_observationController.text}", _selectedFeelings);
     if (mounted && !result.hasError) setState(() => _aiSuggestedNeeds = List<String>.from(result.result));
   }
 
   Future<bool> _refineRequest() async {
+    if (!_isPremium) return true;
     final currentReq = _requestController.text.trim();
     if (currentReq.length < 5) return true;
     if (currentReq == _lastVettedRequest) return !_isOffensive;
