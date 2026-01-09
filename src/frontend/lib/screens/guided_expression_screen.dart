@@ -126,8 +126,13 @@ class _GuidedExpressionScreenState extends State<GuidedExpressionScreen> {
       final feelings = (message['emotions'] as List).join(", ");
       final needs = message['need'];
       final req = message['request'];
-      setState(() {
-        _aiReflection = "I hear you saying that $obs and it made you feel $feelings and you need $needs. I'm willing to consider $req";
+      
+      Future.microtask(() {
+        if (mounted) {
+          setState(() {
+            _aiReflection = "I hear you saying that $obs and it made you feel $feelings and you need $needs. I'm willing to consider $req";
+          });
+        }
       });
       return;
     }
