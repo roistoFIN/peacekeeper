@@ -143,15 +143,21 @@ class _StartScreenState extends State<StartScreen> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         actions: [
-          if (!_isPremium)
-            TextButton.icon(
-              onPressed: () async {
-                await Navigator.push(context, MaterialPageRoute(builder: (context) => const PaywallScreen()));
-                _ensureAuthAndCheckPremium();
-              },
-              icon: const Icon(Icons.diamond, color: Colors.purple),
-              label: const Text("Get Premium", style: TextStyle(color: Colors.purple, fontWeight: FontWeight.bold)),
-            ),
+          _isPremium
+              ? const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 12.0),
+                  child: Center(
+                    child: Text("Premium enabled", style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold)),
+                  ),
+                )
+              : TextButton.icon(
+                  onPressed: () async {
+                    await Navigator.push(context, MaterialPageRoute(builder: (context) => const PaywallScreen()));
+                    _ensureAuthAndCheckPremium();
+                  },
+                  icon: const Icon(Icons.diamond, color: Colors.purple),
+                  label: const Text("Get Premium", style: TextStyle(color: Colors.purple, fontWeight: FontWeight.bold)),
+                ),
           IconButton(
             onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const FeedbackScreen())),
             icon: const Icon(Icons.feedback_outlined, color: Colors.blueGrey),
