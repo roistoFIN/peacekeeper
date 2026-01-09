@@ -54,29 +54,6 @@ app.add_middleware(
 
 profanity.load_censor_words()
 
-# --- Rate Limiting (Token Bucket) ---
-# In-memory storage for demo; for production use Redis or Firestore
-user_buckets = {} 
-
-def check_rate_limit(user_id: str):
-    now = time.time()
-    if user_id not in user_buckets:
-        user_buckets[user_id] = {"tokens": 5, "last_refill": now}
-    
-    bucket = user_buckets[user_id]
-    # Refill 1 token per 60 seconds
-    elapsed = now - bucket["last_refill"]
-    refill = int(elapsed / 60)
-    if refill > 0:
-        bucket["tokens"] = min(5, bucket["tokens"] + refill)
-        bucket["last_refill"] = now
-        
-    if bucket["tokens"] <= 0:
-        return False, int(60 - (elapsed % 60))
-    
-    bucket["tokens"] -= 1
-    return True, 0
-
 # --- Caching Logic ---
 async def get_cached_response(key_parts: List[str]):
     key = hashlib.sha256("".join(key_parts).encode()).hexdigest()
@@ -111,10 +88,6 @@ class AIResponse(BaseModel):
 
 @app.post("/ai/neutralize-observation", response_model=AIResponse)
 async def neutralize_observation(req: AIRequest):
-    allowed, retry_after = check_rate_limit(req.user_id)
-    if not allowed:
-        raise HTTPException(status_code=429, detail={"retry_after": retry_after})
-
     cache_key = [req.user_id, "neutralize", req.text or ""]
     cached = await get_cached_response(cache_key)
     if cached:
@@ -245,7 +218,7 @@ async def generate_reflection(req: AIRequest):
         "Observation: {observation}, Feelings: {feelings}, Needs: {needs}, Request: {request}. "
         "Crucial: In the provided Observation and Request context, 'I' refers to the SPEAKER and 'you' refers to the LISTENER. "
         "However, in the reflection you generate, 'I' refers to the LISTENER and 'You' refers to the SPEAKER. "
-        "Do not invent facts. If the speaker says 'When you tripped', the listener must say 'I hear that when I tripped...'. "
+        "Do not invent facts."
         "The statement must: "
         "1. Acknowledge the speaker's feelings and needs. "
         "2. State the listener's willingness to consider changing their behavior to meet the speaker's need. "

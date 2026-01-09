@@ -409,7 +409,7 @@ class _SpeakerFlowScreenState extends State<SpeakerFlowScreen> {
           const SizedBox(height: 8),
           Text(_stepInstructions['observation']!['short']!, style: const TextStyle(fontSize: 14, color: Colors.black54)),
           const SizedBox(height: 24),
-          TextField(controller: _observationController, maxLength: 200, maxLines: 2, decoration: const InputDecoration(prefixText: 'When ', border: OutlineInputBorder(), filled: true)),
+          TextField(controller: _observationController, maxLength: 1000, maxLines: 2, decoration: const InputDecoration(prefixText: 'When ', border: OutlineInputBorder(), filled: true)),
           _buildAlternativesBox(_observationController, "Next", stoppingQuestion: "Am I certain about this interpretation?"),
           const Spacer(),
           _buildStepButtons(
@@ -494,7 +494,7 @@ class _SpeakerFlowScreenState extends State<SpeakerFlowScreen> {
           const SizedBox(height: 8),
           Text(_stepInstructions['request']!['short']!, style: const TextStyle(fontSize: 14, color: Colors.black54)),
           const SizedBox(height: 24),
-          TextField(controller: _requestController, maxLength: 200, maxLines: 2, decoration: const InputDecoration(prefixText: "Would you be willing to ", border: OutlineInputBorder(), filled: true)),
+          TextField(controller: _requestController, maxLength: 1000, maxLines: 2, decoration: const InputDecoration(prefixText: "Would you be willing to ", border: OutlineInputBorder(), filled: true)),
           _buildAlternativesBox(_requestController, "Preview", stoppingQuestion: "Is my partner bad, or simply different from me?"),
           const Spacer(),
           _buildStepButtons(

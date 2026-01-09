@@ -147,7 +147,7 @@ class _StartScreenState extends State<StartScreen> {
             TextButton.icon(
               onPressed: () async {
                 await Navigator.push(context, MaterialPageRoute(builder: (context) => const PaywallScreen()));
-                _checkPremium();
+                _ensureAuthAndCheckPremium();
               },
               icon: const Icon(Icons.diamond, color: Colors.purple),
               label: const Text("Get Premium", style: TextStyle(color: Colors.purple, fontWeight: FontWeight.bold)),
