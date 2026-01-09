@@ -113,15 +113,21 @@ class _RegulationScreenState extends State<RegulationScreen> with SingleTickerPr
         elevation: 0,
         automaticallyImplyLeading: false,
         actions: [
-          if (!_isPremium)
-            TextButton.icon(
-              onPressed: () async {
-                await Navigator.push(context, MaterialPageRoute(builder: (context) => const PaywallScreen()));
-                _checkPremium();
-              },
-              icon: const Icon(Icons.diamond, color: Colors.purple),
-              label: const Text("Get Premium", style: TextStyle(color: Colors.purple, fontWeight: FontWeight.bold)),
-            ),
+          _isPremium
+              ? const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 12.0),
+                  child: Center(
+                    child: Text("Premium enabled", style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold)),
+                  ),
+                )
+              : TextButton.icon(
+                  onPressed: () async {
+                    await Navigator.push(context, MaterialPageRoute(builder: (context) => const PaywallScreen()));
+                    _checkPremium();
+                  },
+                  icon: const Icon(Icons.diamond, color: Colors.purple),
+                  label: const Text("Get Premium", style: TextStyle(color: Colors.purple, fontWeight: FontWeight.bold)),
+                ),
           TextButton.icon(
             onPressed: () async {
               final confirmed = await showDialog<bool>(

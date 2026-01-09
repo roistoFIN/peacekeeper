@@ -217,15 +217,21 @@ class _GuidedExpressionScreenState extends State<GuidedExpressionScreen> {
               ],
             ),
             actions: [
-              if (!_isPremium)
-                TextButton.icon(
-                  onPressed: () async {
-                    await Navigator.push(context, MaterialPageRoute(builder: (context) => const PaywallScreen()));
-                    _checkPremium();
-                  },
-                  icon: const Icon(Icons.diamond, color: Colors.purple),
-                  label: const Text("Get Premium", style: TextStyle(color: Colors.purple, fontWeight: FontWeight.bold)),
-                ),
+              _isPremium
+                  ? const Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 12.0),
+                      child: Center(
+                        child: Text("Premium enabled", style: TextStyle(color: Colors.green, fontWeight: FontWeight.bold)),
+                      ),
+                    )
+                  : TextButton.icon(
+                      onPressed: () async {
+                        await Navigator.push(context, MaterialPageRoute(builder: (context) => const PaywallScreen()));
+                        _checkPremium();
+                      },
+                      icon: const Icon(Icons.diamond, color: Colors.purple),
+                      label: const Text("Get Premium", style: TextStyle(color: Colors.purple, fontWeight: FontWeight.bold)),
+                    ),
               IconButton(onPressed: _quitSession, icon: const Icon(Icons.exit_to_app, color: Colors.red)),
             ],
             automaticallyImplyLeading: false,
