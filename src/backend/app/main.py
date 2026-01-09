@@ -54,6 +54,32 @@ app.add_middleware(
 
 profanity.load_censor_words()
 
+def parse_ai_alternatives(text: str) -> List[str]:
+    """Robustly parse AI alternatives from response text."""
+    if "Alternatives:" not in text:
+        return []
+    
+    alts_part = text.split("Alternatives:")[1].strip()
+    # Remove potential brackets
+    alts_part = alts_part.replace("[", "").replace("]", "")
+    
+    # Try splitting by newline first (often how Gemini formats lists)
+    lines = [line.strip() for line in alts_part.split("\n") if line.strip()]
+    
+    # If it's one long line, try splitting by comma
+    if len(lines) <= 1:
+        lines = [s.strip() for s in alts_part.split(",") if s.strip()]
+    
+    # Clean up common list patterns (1. , - , etc.)
+    cleaned = []
+    for line in lines:
+        # Remove leading numbers like "1. ", "2)", "- "
+        line = re.sub(r'^(\d+[\.\)]|\-|\*)\s*', '', line).strip()
+        if line:
+            cleaned.append(line)
+            
+    return cleaned[:3]
+
 # --- Caching Logic ---
 async def get_cached_response(key_parts: List[str]):
     key = hashlib.sha256("".join(key_parts).encode()).hexdigest()
@@ -109,13 +135,7 @@ async def neutralize_observation(req: AIRequest):
     
     # Parse the AI response
     is_offensive = "Judgment: Yes" in resp_text
-    alts = []
-    if "Alternatives:" in resp_text:
-        alts_part = resp_text.split("Alternatives:")[1].strip()
-        # Clean up any potential brackets Gemini might still include
-        alts_part = alts_part.replace("[", "").replace("]", "")
-        alts = [s.strip() for s in alts_part.split(",") if s.strip()]
-        alts = alts[:3] # Safety slice: never show more than 3
+    alts = parse_ai_alternatives(resp_text)
 
     # If the AI suggests changes, we consider it 'offensive' (judgmental) for the UI logic
     if is_offensive and alts:
@@ -150,12 +170,7 @@ async def refine_request(req: AIRequest):
     
     # Parse the AI response
     is_offensive = "Judgment: Yes" in resp_text
-    alts = []
-    if "Alternatives:" in resp_text:
-        alts_part = resp_text.split("Alternatives:")[1].strip()
-        alts_part = alts_part.replace("[", "").replace("]", "")
-        alts = [s.strip() for s in alts_part.split(",") if s.strip()]
-        alts = alts[:3] # Safety slice: never show more than 3
+    alts = parse_ai_alternatives(resp_text)
 
     if is_offensive and alts:
         return AIResponse(result=alts[0], alternatives=alts, is_offensive=True)

@@ -106,12 +106,20 @@ class _PaywallScreenState extends State<PaywallScreen> {
                       ? const Center(child: Text("No offerings available. check configuration."))
                       : ListView(
                           padding: const EdgeInsets.all(24),
-                          children: [
-                            const Text("Choose your plan", style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold), textAlign: TextAlign.center),
-                            const SizedBox(height: 32),
-                            ..._offerings!.current!.availablePackages.map((package) => _buildPackageCard(package)),
-                          ],
-                        ),
+                  children: [
+                    const Icon(Icons.favorite, size: 64, color: Colors.purple),
+                    const SizedBox(height: 16),
+                    const Text("Invest in your relationship", style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold), textAlign: TextAlign.center),
+                    const SizedBox(height: 16),
+                    const Text("Better communication starts here.", style: TextStyle(fontSize: 16, color: Colors.grey)),
+                    const SizedBox(height: 32),
+                    _buildBenefitRow(Icons.bolt, "AI help with feelings, needs & neutral phrasing"),
+                    _buildBenefitRow(Icons.security, "Unlimited SOS sessions"),
+                    _buildBenefitRow(Icons.block, "Ad-free experience"),
+                    const SizedBox(height: 40),
+                    ..._offerings!.current!.availablePackages.map((package) => _buildPackageCard(package)),
+                  ],
+                ),
                 ),
                 Padding(
                   padding: const EdgeInsets.all(24.0),
@@ -122,6 +130,19 @@ class _PaywallScreenState extends State<PaywallScreen> {
                 ),
               ],
             ),
+    );
+  }
+
+  Widget _buildBenefitRow(IconData icon, String text) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16.0),
+      child: Row(
+        children: [
+          Icon(icon, color: Colors.green, size: 20),
+          const SizedBox(width: 12),
+          Text(text, style: const TextStyle(fontSize: 16)),
+        ],
+      ),
     );
   }
 
