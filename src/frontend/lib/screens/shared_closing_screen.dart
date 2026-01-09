@@ -196,12 +196,42 @@ class _SharedClosingScreenState extends State<SharedClosingScreen> {
                             style: const TextStyle(fontSize: 18, fontStyle: FontStyle.italic, color: Colors.black87),
                           ),
                         )).toList(),
-                      );
-                    },
-                  ),
-            
-                  if (!_isPremium && _isAdLoaded && _bannerAd != null) ...[
-                    const SizedBox(height: 32),
+                                          );
+                                        },
+                                      ),
+                      
+                                      if (!_isPremium)
+                                        GestureDetector(
+                                          onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const PaywallScreen())).then((_) => _checkPremiumAndLoadAd()),
+                                          child: Container(
+                                            margin: const EdgeInsets.symmetric(vertical: 24),
+                                            padding: const EdgeInsets.all(16),
+                                            decoration: BoxDecoration(
+                                              gradient: LinearGradient(colors: [Colors.purple.shade50, Colors.white]),
+                                              borderRadius: BorderRadius.circular(12),
+                                              border: Border.all(color: Colors.purple.shade100),
+                                              boxShadow: [BoxShadow(color: Colors.purple.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, 4))],
+                                            ),
+                                            child: Row(
+                                              children: [
+                                                Icon(Icons.auto_awesome, color: Colors.purple.shade300),
+                                                const SizedBox(width: 16),
+                                                const Expanded(
+                                                  child: Column(
+                                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                                                                  children: [
+                                                                                    Text("Want deeper insights?", style: TextStyle(fontWeight: FontWeight.bold, color: Colors.purple)),
+                                                                                    SizedBox(height: 4),
+                                                                                    Text("Premium members get AI help to identify feelings, needs, and neutral phrasing.", style: TextStyle(fontSize: 12, color: Colors.black54)),
+                                                                                  ],                                                  ),
+                                                ),
+                                                const Icon(Icons.arrow_forward_ios, size: 16, color: Colors.purple),
+                                              ],
+                                            ),
+                                          ),
+                                        ),
+                      
+                                      if (!_isPremium && _isAdLoaded && _bannerAd != null) ...[                    const SizedBox(height: 32),
                     SizedBox(
                       height: _bannerAd!.size.height.toDouble(),
                       width: _bannerAd!.size.width.toDouble(),

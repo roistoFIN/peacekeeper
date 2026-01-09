@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../services/content_service.dart';
 import '../services/subscription_service.dart';
+import 'paywall_screen.dart';
 
 class SpeakerFlowScreen extends StatefulWidget {
   final String sessionId;
@@ -334,6 +335,38 @@ class _SpeakerFlowScreenState extends State<SpeakerFlowScreen> {
   }
 
   Widget _buildAlternativesBox(TextEditingController controller, String nextButtonLabel, {String? stoppingQuestion}) {
+    if (!_isPremium) {
+      return Container(
+        margin: const EdgeInsets.only(top: 16),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.grey.shade100,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: Colors.grey.shade300),
+        ),
+        child: Row(
+          children: [
+            const Icon(Icons.lock_outline, color: Colors.grey),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text("AI Suggestions Locked", style: TextStyle(fontWeight: FontWeight.bold, color: Colors.grey)),
+                  const SizedBox(height: 4),
+                  const Text("Premium members get real-time help to phrase this neutrally.", style: TextStyle(fontSize: 12, color: Colors.black54)),
+                ],
+              ),
+            ),
+            TextButton(
+              onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const PaywallScreen())).then((_) => _loadData()),
+              child: const Text("Unlock"),
+            ),
+          ],
+        ),
+      );
+    }
+
     if (_aiAlternatives.isEmpty) return const SizedBox();
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -455,7 +488,28 @@ class _SpeakerFlowScreenState extends State<SpeakerFlowScreen> {
           const SizedBox(height: 8),
           Text(_stepInstructions[stepKey]!['short']!, style: const TextStyle(fontSize: 14, color: Colors.black54)),
           const SizedBox(height: 16),
-          if (aiSuggestions.isNotEmpty) ...[
+          if (!_isPremium)
+            Container(
+              margin: const EdgeInsets.only(bottom: 24),
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.grey.shade50,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: Colors.grey.shade200),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.lock, size: 16, color: Colors.grey),
+                  const SizedBox(width: 8),
+                  const Expanded(child: Text("AI suggestions locked", style: TextStyle(color: Colors.grey, fontStyle: FontStyle.italic))),
+                  InkWell(
+                    onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const PaywallScreen())).then((_) => _loadData()),
+                    child: const Text("Unlock", style: TextStyle(color: Colors.purple, fontWeight: FontWeight.bold)),
+                  ),
+                ],
+              ),
+            )
+          else if (aiSuggestions.isNotEmpty) ...[
             const Text("AI Suggestions:", style: TextStyle(color: Colors.blue, fontWeight: FontWeight.bold)),
             Wrap(spacing: 8, children: aiSuggestions.map((s) => FilterChip(label: Text(s), selected: selectedItems.contains(s), onSelected: (val) { setState(() { if (val && selectedItems.length < maxItems) selectedItems.add(s); if (!val) selectedItems.remove(s); }); }, backgroundColor: Colors.blue.shade50)).toList()),
             const Divider(height: 32),
