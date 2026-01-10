@@ -74,7 +74,7 @@ class _RegulationScreenState extends State<RegulationScreen> with SingleTickerPr
       final sessionRef = FirebaseFirestore.instance.collection('sessions').doc(widget.sessionId);
       final sessionDoc = await sessionRef.get();
       final isSolo = sessionDoc.data()?['mode'] == 'solo';
-      DebugService.info("Session Mode: ${isSolo ? 'Solo' : '2-Player'}");
+      DebugService.info("Session Mode: ${isSolo ? 'Solo' : 'Shared'}");
 
       // 1. Mark myself as ready
       DebugService.info("Marking user ${user.uid} as ready (regulation_complete)");

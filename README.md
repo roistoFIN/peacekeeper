@@ -4,7 +4,7 @@ Peacekeeper is a professional conflict coaching application designed to help ind
 
 ## Core Features
 
-- **SOS Mode (2-Player):** A synchronized "two phones, one conflict" session. Guides couples through physiological regulation, structured expression, and empathetic reflection.
+- **SOS Mode (Shared):** A synchronized "two phones, one conflict" session. Guides couples through physiological regulation, structured expression, and empathetic reflection.
 - **Solo Mode (Self-Guide):** A guided process for individuals to structure their thoughts and feelings before or after a difficult conversation.
 - **AI-Enhanced Coaching:** Powered by Gemini 2.5 Flash Lite to neutralize judgmental language, suggest core emotions, and identify universal human needs.
 - **Scientific Basis:** Built on the Gottman Method, Polyvagal Theory, Emotionally Focused Therapy (EFT), and Nonviolent Communication (NVC).
