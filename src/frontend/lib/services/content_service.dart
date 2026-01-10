@@ -56,17 +56,22 @@ class ContentService {
   }
 
   Future<AIResult> _callAI(String path, String text, {Map<String, dynamic>? context}) async {
-    if (_uid == null) return AIResult(error: "User not authenticated");
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return AIResult(error: "User not authenticated");
 
     try {
+      final token = await user.getIdToken();
       DebugService.info(">>> AI REQUEST: $path");
       DebugService.log(">>> TEXT: $text");
       
       final response = await http.post(
         Uri.parse('$_baseUrl$path'),
-        headers: {'Content-Type': 'application/json'},
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
         body: jsonEncode({
-          'user_id': _uid,
+          'user_id': user.uid,
           'text': text,
           'context': context,
         }),

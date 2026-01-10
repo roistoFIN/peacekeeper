@@ -6,9 +6,19 @@ import os
 # Add the app directory to sys.path to allow importing main
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from app.main import app, parse_ai_alternatives
+from app.main import app, parse_ai_alternatives, verify_firebase_token
+import pytest
 
 client = TestClient(app)
+
+# --- Fixtures ---
+@pytest.fixture(autouse=True)
+def override_auth():
+    """Automatically bypass auth for all tests in this module."""
+    app.dependency_overrides[verify_firebase_token] = lambda: "test_user"
+    yield
+    # Clean up after tests (important so it doesn't affect other files if run in same process)
+    app.dependency_overrides = {}
 
 # --- Unit Tests ---
 

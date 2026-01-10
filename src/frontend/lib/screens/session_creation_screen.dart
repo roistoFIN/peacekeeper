@@ -34,7 +34,7 @@ class _SessionCreationScreenState extends State<SessionCreationScreen> {
 
   Future<void> _createSession() async {
     try {
-      DebugService.info("Action: Creating 2-Player Session");
+      DebugService.info("Action: Creating Shared Session");
       // 1. Ensure user is authenticated
       User? user = FirebaseAuth.instance.currentUser;
       if (user == null) {

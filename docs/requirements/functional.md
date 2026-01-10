@@ -3,7 +3,7 @@
 ## Version 0.1+ Core User Flows
 
 ### 1. Start Screen
-- **Action A: SOS - Conflict happening now** (Starts 2-player session).
+- **Action A: SOS - Conflict happening now** (Starts shared session).
 - **Action B: Join an ongoing conversation** (Joins session via 6-digit code).
 - **Action C: Guide me to express...** (Starts solo session).
 - **Premium Status:** Displays "Premium enabled" (Green) or "Get Premium" button.
@@ -11,7 +11,7 @@
 ### 2. Session Phase 1: Regulation
 - **Timer:** 60-second breathing countdown.
 - **Goal:** Physiological de-escalation via Polyvagal theory.
-- **Transition:** Proceeds only when the timer reaches zero and (in 2-player mode) both participants confirm readiness.
+- **Transition:** Proceeds only when the timer reaches zero and (in shared mode) both participants confirm readiness.
 
 ### 3. Session Phase 2: Expression (4-Step Wizard)
 - **Step 1 (Observation):** "When [Action]..."
