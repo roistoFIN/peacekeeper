@@ -15,7 +15,7 @@ from vertexai.generative_models import GenerativeModel
 
 # --- Configuration ---
 # Global Debug Switch
-DEBUG_MODE = os.getenv("GOOGLE_CLOUD_PROJECT", "peacekeeper-483320").lower() == "true"
+DEBUG_MODE = os.getenv("DEBUG_MODE", "false").lower() == "true"
 
 # Setup Logging
 logging.basicConfig(

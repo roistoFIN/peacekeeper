@@ -18,7 +18,7 @@ class RegulationScreen extends StatefulWidget {
 }
 
 class _RegulationScreenState extends State<RegulationScreen> with SingleTickerProviderStateMixin {
-  int _secondsRemaining = 1; // TEMPORARY: Reduced for testing (original: 60)
+  int _secondsRemaining = 60; 
   Timer? _timer;
   late AnimationController _breathingController;
   late Animation<double> _breathingAnimation;

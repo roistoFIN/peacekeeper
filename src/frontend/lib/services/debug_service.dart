@@ -2,7 +2,7 @@ import 'package:flutter/foundation.dart';
 
 class DebugService {
   // Global switch to toggle logging
-  static bool isEnabled = true;
+  static bool isEnabled = false;
 
   static void log(String message) {
     if (isEnabled) {
