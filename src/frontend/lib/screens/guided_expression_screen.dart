@@ -248,7 +248,18 @@ class _GuidedExpressionScreenState extends State<GuidedExpressionScreen> {
     }
 
     if (isSpeaker) {
-      if (sessionStatus == 'message_sent') return const Center(child: Text("Waiting for partner to reflect..."));
+      if (sessionStatus == 'message_sent') {
+        // In Solo mode, go to closing screen after sharing
+        if (data['mode'] == 'solo') {
+           FirebaseFirestore.instance.collection('sessions').doc(widget.sessionId).update({'status': 'shared_closing'});
+           return const Center(child: CircularProgressIndicator());
+        }
+        return const Center(child: Text("Waiting for partner to reflect..."));
+      }
+      
+      if (data['mode'] == 'solo') {
+        return SpeakerFlowScreen(sessionId: widget.sessionId);
+      }
       return _buildSpeakerView(listenerStatus);
     } else {
       if (sessionStatus == 'message_sent') {
