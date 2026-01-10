@@ -8,6 +8,7 @@ import 'feedback_screen.dart';
 import 'paywall_screen.dart';
 import 'regulation_screen.dart';
 import '../services/subscription_service.dart';
+import '../services/debug_service.dart';
 
 class StartScreen extends StatefulWidget {
   const StartScreen({super.key});
@@ -31,7 +32,7 @@ class _StartScreenState extends State<StartScreen> {
       try {
         await FirebaseAuth.instance.signInAnonymously();
       } catch (e) {
-        debugPrint("Auth error: $e");
+        DebugService.error("Auth error", e);
       }
     }
     

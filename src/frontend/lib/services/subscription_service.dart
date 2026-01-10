@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:purchases_flutter/purchases_flutter.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import '../services/debug_service.dart';
 
 class SubscriptionService {
   // TODO: Replace with your actual RevenueCat API Keys
@@ -53,7 +54,7 @@ class SubscriptionService {
         }
       }
     } catch (e) {
-      print("Error checking firestore premium: $e");
+      DebugService.error("Error checking firestore premium", e);
     }
 
     return false;
