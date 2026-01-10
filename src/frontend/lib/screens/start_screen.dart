@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'dart:math';
 import 'session_creation_screen.dart';
 import 'join_session_screen.dart';
 import 'feedback_screen.dart';
 import 'paywall_screen.dart';
+import 'regulation_screen.dart';
 import '../services/subscription_service.dart';
 
 class StartScreen extends StatefulWidget {
@@ -35,6 +38,56 @@ class _StartScreenState extends State<StartScreen> {
     // 2. Check Premium
     final status = await SubscriptionService.isPremium();
     if (mounted) setState(() => _isPremium = status);
+  }
+
+  Future<void> _createSoloSession() async {
+    try {
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) => const Center(child: CircularProgressIndicator()),
+      );
+
+      User? user = FirebaseAuth.instance.currentUser;
+      if (user == null) {
+        final userCredential = await FirebaseAuth.instance.signInAnonymously();
+        user = userCredential.user;
+      }
+      if (user == null) throw Exception("Authentication failed");
+
+      // Generate a unique ID for solo session (doesn't need to be 6-digit readable)
+      final sessionId = "solo_${user.uid}_${DateTime.now().millisecondsSinceEpoch}";
+
+      await FirebaseFirestore.instance.collection('sessions').doc(sessionId).set({
+        'hostId': user.uid,
+        'createdAt': FieldValue.serverTimestamp(),
+        'status': 'active', 
+        'mode': 'solo',
+        'participants': [user.uid],
+        'current_speaker': user.uid,
+      });
+
+      // Initialize participant state
+      await FirebaseFirestore.instance.collection('sessions').doc(sessionId)
+          .collection('participant_states').doc(user.uid).set({
+        'status': 'joined',
+      });
+
+      if (mounted) {
+        Navigator.pop(context); // Close loading
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => RegulationScreen(sessionId: sessionId),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        Navigator.pop(context);
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Error: $e")));
+      }
+    }
   }
 
   void _showAppInfo(BuildContext context) {
@@ -236,7 +289,19 @@ class _StartScreenState extends State<StartScreen> {
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
                 ),
               ),
-              const SizedBox(height: 40),
+              const SizedBox(height: 16),
+              TextButton(
+                onPressed: _createSoloSession,
+                style: TextButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 20),
+                ),
+                child: const Text(
+                  'Guide me to express my feelings, needs and request',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, decoration: TextDecoration.underline),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+              const SizedBox(height: 24),
               const Text(
                 'This app helps you speak and listen more safely.',
                 style: TextStyle(

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'waiting_screen.dart';
+import 'guided_expression_screen.dart';
 import '../services/subscription_service.dart';
 import 'paywall_screen.dart';
 
@@ -66,6 +67,8 @@ class _RegulationScreenState extends State<RegulationScreen> with SingleTickerPr
       if (user == null) return;
 
       final sessionRef = FirebaseFirestore.instance.collection('sessions').doc(widget.sessionId);
+      final sessionDoc = await sessionRef.get();
+      final isSolo = sessionDoc.data()?['mode'] == 'solo';
 
       // 1. Mark myself as ready
       await sessionRef.collection('participant_states').doc(user.uid).set({
@@ -77,12 +80,13 @@ class _RegulationScreenState extends State<RegulationScreen> with SingleTickerPr
       final statesSnapshot = await sessionRef.collection('participant_states').get();
       final participants = statesSnapshot.docs;
       
-      // We expect 2 participants. Check if all are 'regulation_complete'
-      final allReady = participants.length == 2 && 
+      // We expect 2 participants (or 1 if solo). Check if all are 'regulation_complete'
+      final expectedCount = isSolo ? 1 : 2;
+      final allReady = participants.length >= expectedCount && 
           participants.every((doc) => doc.data()['status'] == 'regulation_complete');
 
       if (allReady) {
-        // Pick random speaker and start expression phase
+        // Pick random speaker (or just me if solo) and start expression phase
         final speakerId = participants[Random().nextInt(participants.length)].id;
         await sessionRef.update({
           'status': 'expression_phase',
@@ -92,10 +96,17 @@ class _RegulationScreenState extends State<RegulationScreen> with SingleTickerPr
       }
 
       if (mounted) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => WaitingScreen(sessionId: widget.sessionId)),
-        );
+        if (isSolo) {
+           Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => GuidedExpressionScreen(sessionId: widget.sessionId)),
+          );
+        } else {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => WaitingScreen(sessionId: widget.sessionId)),
+          );
+        }
       }
 
     } catch (e) {
