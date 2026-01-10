@@ -7,6 +7,7 @@ import 'shared_closing_screen.dart';
 import 'start_screen.dart';
 import '../services/content_service.dart';
 import '../services/subscription_service.dart';
+import '../services/debug_service.dart';
 import 'paywall_screen.dart';
 
 class GuidedExpressionScreen extends StatefulWidget {
@@ -33,6 +34,7 @@ class _GuidedExpressionScreenState extends State<GuidedExpressionScreen> {
   @override
   void initState() {
     super.initState();
+    DebugService.info("GuidedExpressionScreen initialized");
     _checkPremium();
   }
 
@@ -50,12 +52,14 @@ class _GuidedExpressionScreenState extends State<GuidedExpressionScreen> {
   void _startTimer() {
     if (_timerStarted) return;
     _timerStarted = true;
+    DebugService.info("Speaker Timer started: $_secondsRemaining seconds");
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (_secondsRemaining > 0) {
         if (mounted) setState(() => _secondsRemaining--);
       } else {
         _timer?.cancel();
         // Time ran out! End session for both.
+        DebugService.info("Speaker Timer expired. Ending session.");
         if (mounted) {
           FirebaseFirestore.instance.collection('sessions').doc(widget.sessionId).update({'status': 'finished'});
         }
@@ -64,6 +68,7 @@ class _GuidedExpressionScreenState extends State<GuidedExpressionScreen> {
   }
 
   Future<void> _setListenerReady() async {
+    DebugService.info("Listener confirmed readiness.");
     await FirebaseFirestore.instance
         .collection('sessions')
         .doc(widget.sessionId)
@@ -83,12 +88,15 @@ class _GuidedExpressionScreenState extends State<GuidedExpressionScreen> {
       ),
     );
     if (confirmed == true) {
+      DebugService.info("User quit the session manually.");
       await FirebaseFirestore.instance.collection('sessions').doc(widget.sessionId).update({'status': 'finished'});
     }
   }
 
   Future<void> _startNextTurn(String currentSpeakerId, List<dynamic> participants, int turnsCompleted) async {
+    DebugService.info("Turn completed. Total turns: $turnsCompleted");
     if (turnsCompleted >= 1) {
+      DebugService.info("Session limit reached. Proceeding to Shared Closing.");
       await FirebaseFirestore.instance
           .collection('sessions')
           .doc(widget.sessionId)
@@ -99,6 +107,7 @@ class _GuidedExpressionScreenState extends State<GuidedExpressionScreen> {
     final nextSpeaker = participants.firstWhere((id) => id != currentSpeakerId, orElse: () => '');
 
     if (nextSpeaker.isNotEmpty) {
+      DebugService.info("Switching turns. Next speaker: $nextSpeaker");
       await FirebaseFirestore.instance
           .collection('sessions')
           .doc(widget.sessionId)
@@ -120,8 +129,11 @@ class _GuidedExpressionScreenState extends State<GuidedExpressionScreen> {
   Future<void> _getAIReflection(Map<String, dynamic> message) async {
     if (_aiReflection != null || _isGeneratingReflection) return;
     
+    DebugService.info("Generating AI Reflection for message...");
+    
     // For free users, use fixed template
     if (!_isPremium) {
+      DebugService.info("User is free tier. Using fixed reflection template.");
       final obs = message['observation'];
       final feelings = (message['emotions'] as List).join(", ");
       final needs = message['need'];
@@ -152,7 +164,12 @@ class _GuidedExpressionScreenState extends State<GuidedExpressionScreen> {
     if (mounted) {
       setState(() {
         _isGeneratingReflection = false;
-        if (!result.hasError) _aiReflection = result.result;
+        if (!result.hasError) {
+          _aiReflection = result.result;
+          DebugService.info("AI Reflection generated successfully.");
+        } else {
+          DebugService.error("Failed to generate reflection");
+        }
       });
     }
   }

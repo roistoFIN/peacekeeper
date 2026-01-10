@@ -5,12 +5,9 @@ import 'package:purchases_flutter/purchases_flutter.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../services/debug_service.dart';
+import 'revenuecat_helper.dart';
 
 class SubscriptionService {
-  // TODO: Replace with your actual RevenueCat API Keys
-  static const _apiKeyAndroid = 'goog_placeholder_api_key';
-  static const _apiKeyIOS = 'appl_placeholder_api_key';
-  
   static const String entitlementId = 'premium';
 
   static Future<void> init() async {
@@ -18,15 +15,7 @@ class SubscriptionService {
 
     await Purchases.setLogLevel(LogLevel.debug);
 
-    PurchasesConfiguration configuration;
-    if (Platform.isAndroid) {
-      configuration = PurchasesConfiguration(_apiKeyAndroid);
-    } else if (Platform.isIOS) {
-      configuration = PurchasesConfiguration(_apiKeyIOS);
-    } else {
-      return;
-    }
-
+    PurchasesConfiguration configuration = PurchasesConfiguration(RevenueCatHelper.apiKey);
     await Purchases.configure(configuration);
   }
 

@@ -17,8 +17,16 @@ src/frontend/build/
 src/frontend/flutter_export.pdf
 src/frontend/flutter_01.png
 
+# Configuration / Secrets
+src/frontend/lib/services/ad_helper.dart
+src/frontend/lib/services/revenuecat_helper.dart
+src/frontend/android/app/src/main/res/values/admob_config.xml
+
 # Flutter - Android
 src/frontend/android/local.properties
+src/frontend/android/key.properties
+src/frontend/android/*.jks
+src/frontend/android/*.keystore
 src/frontend/android/.gradle
 src/frontend/android/app/build/
 src/frontend/android/*.iml

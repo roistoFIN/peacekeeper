@@ -1,14 +1,34 @@
-## System Architecture (Cloud-Native)
+# Systems Design: Peacekeeper
 
-This architecture is optimized for scalability and performance. The application is designed to guide a structured process where cognitive load is minimized during active conflict. 
+The Peacekeeper architecture follows a "scale-to-zero" principle, optimized for Google Cloud Platform (GCP). It is designed to minimize latency during high-stress user interactions.
 
-### Tech Stack
-* Frontend: Flutter (iOS & Android). Enables a unified user experience and rapid development cycles.
-* Backend API: Google Cloud Run (Docker container). Handles the complex "NVC-lite" logic and message filtering to prevent impulsive language. 
-* Real-time Database: Firestore. Manages synchronization between devices without the need for persistent WebSocket connections.
-* Authentication: Firebase Anonymous Auth. Enables session-based identification without requiring user accounts for v0.1. 
+## Architectural Layers
 
-### Architectural Layers
-* Orchestration Layer (Firestore): Manages the state machine of the conflict session (e.g., STATUS: REGULATION, STATUS: EXPRESSION_PHASE). 
-* Logic Layer (Cloud Run + Gemini): Uses Gemini 2.5 Flash Lite to neutralize observations, predict feelings/needs, and generate role-reversed reflections for the listener.
-* Safety Layer (Offensive Gate): Gemini acts as a strict validator in Steps 1 and 4. If input is judgmental or demanding, the "Next" button is disabled until a neutral AI suggestion is accepted.
+### 1. Orchestration Layer (Firebase)
+- **Firestore:** Acts as the real-time state machine for shared sessions. Manages synchronization between devices without persistent WebSocket connections.
+- **Anonymous Auth:** Provides session-based identity, ensuring privacy while maintaining a consistent user context for premium features.
+
+### 2. Logic Layer (FastAPI + Vertex AI)
+- **Cloud Run:** Hosts the Python backend. Handles NVC-lite logic, message filtering, and vocabulary serving.
+- **Gemini 2.5 Flash Lite:** Used for:
+  - Neutralizing observations (Phase 1)
+  - Suggesting core feelings (Phase 2)
+  - Identifying universal needs (Phase 3)
+  - Refining actionable requests (Phase 4)
+  - Generating empathetic reflections (Phase 5)
+
+### 3. Monetization & Feedback Layer
+- **RevenueCat:** Unified SDK for managing iOS/Android subscriptions and entitlements. Supports "SOS Day Pass" and "Monthly Premium".
+- **Google AdMob:** Native banner ads integrated into the session closing screen for free users.
+- **Promo Code System:** Custom Firestore-backed gift card system for manual premium overrides.
+
+### 4. Safety Layer
+- **Offensive Gate:** AI-driven validation in Phases 1 and 4. Blocks progress if judgmental or demanding language is detected.
+- **CBT Stopping Questions:** Contextual interventions ("Am I certain about this interpretation?") that appear when the AI flags impulsive language.
+
+## Data Flow (High Level)
+1. User enters text.
+2. Frontend debounces and sends to Backend.
+3. Backend checks cache; if miss, calls Gemini via Vertex AI.
+4. AI Response is parsed into clean neutral alternatives.
+5. User selects an alternative, updating the shared session state in Firestore.

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'guided_expression_screen.dart';
 import 'start_screen.dart';
 import '../services/subscription_service.dart';
+import '../services/debug_service.dart';
 import 'paywall_screen.dart';
 
 class WaitingScreen extends StatefulWidget {
@@ -19,6 +20,7 @@ class _WaitingScreenState extends State<WaitingScreen> {
   @override
   void initState() {
     super.initState();
+    DebugService.info("WaitingScreen initialized");
     _checkPremium();
     _listenForPhaseChange();
   }
@@ -29,6 +31,7 @@ class _WaitingScreenState extends State<WaitingScreen> {
   }
 
   void _listenForPhaseChange() {
+    DebugService.info("Listening for phase changes in session: ${widget.sessionId}");
     FirebaseFirestore.instance
         .collection('sessions')
         .doc(widget.sessionId)
@@ -38,6 +41,7 @@ class _WaitingScreenState extends State<WaitingScreen> {
         final data = snapshot.data();
         if (data != null) {
           if (data['status'] == 'expression_phase') {
+            DebugService.info("Phase changed to 'expression_phase'. Navigating...");
             if (mounted) {
               Navigator.pushReplacement(
                 context,
@@ -47,6 +51,7 @@ class _WaitingScreenState extends State<WaitingScreen> {
               );
             }
           } else if (data['status'] == 'finished') {
+            DebugService.info("Session finished remotely. Returning to start.");
             if (mounted) {
               Navigator.of(context).pushAndRemoveUntil(
                 MaterialPageRoute(builder: (context) => const StartScreen()),

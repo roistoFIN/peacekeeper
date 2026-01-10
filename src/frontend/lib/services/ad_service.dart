@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'debug_service.dart';
+import 'ad_helper.dart';
 
 class AdService {
   static Future<void> init() async {
@@ -10,13 +11,8 @@ class AdService {
   }
 
   static String get bannerAdUnitId {
-    if (kIsWeb) return ''; // Not supported
-    if (Platform.isAndroid) {
-      return 'ca-app-pub-3940256099942544/6300978111'; // Test ID
-    } else if (Platform.isIOS) {
-      return 'ca-app-pub-3940256099942544/2934735716'; // Test ID
-    }
-    throw UnsupportedError('Unsupported platform');
+    if (kIsWeb) return ''; 
+    return AdHelper.bannerAdUnitId;
   }
 
   static BannerAd? createBannerAd() {

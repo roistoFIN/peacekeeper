@@ -28,6 +28,7 @@ class _RegulationScreenState extends State<RegulationScreen> with SingleTickerPr
   @override
   void initState() {
     super.initState();
+    DebugService.info("RegulationScreen initialized: Breathing Phase");
     _checkPremium();
     _startTimer();
     _breathingController = AnimationController(
@@ -45,10 +46,12 @@ class _RegulationScreenState extends State<RegulationScreen> with SingleTickerPr
   }
 
   void _startTimer() {
+    DebugService.info("Regulation Timer started: $_secondsRemaining seconds");
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
       if (_secondsRemaining > 0) {
         if (mounted) setState(() => _secondsRemaining--);
       } else {
+        DebugService.info("Regulation Timer finished");
         _timer?.cancel();
       }
     });
@@ -62,6 +65,7 @@ class _RegulationScreenState extends State<RegulationScreen> with SingleTickerPr
   }
 
   Future<void> _handleContinue() async {
+    DebugService.info("User tapped Continue in RegulationScreen");
     setState(() => _isProcessing = true);
     try {
       final user = FirebaseAuth.instance.currentUser;
@@ -70,8 +74,10 @@ class _RegulationScreenState extends State<RegulationScreen> with SingleTickerPr
       final sessionRef = FirebaseFirestore.instance.collection('sessions').doc(widget.sessionId);
       final sessionDoc = await sessionRef.get();
       final isSolo = sessionDoc.data()?['mode'] == 'solo';
+      DebugService.info("Session Mode: ${isSolo ? 'Solo' : '2-Player'}");
 
       // 1. Mark myself as ready
+      DebugService.info("Marking user ${user.uid} as ready (regulation_complete)");
       await sessionRef.collection('participant_states').doc(user.uid).set({
         'status': 'regulation_complete',
         'updatedAt': FieldValue.serverTimestamp(),
@@ -87,6 +93,7 @@ class _RegulationScreenState extends State<RegulationScreen> with SingleTickerPr
           participants.every((doc) => doc.data()['status'] == 'regulation_complete');
 
       if (allReady) {
+        DebugService.info("All participants ready. Starting Expression Phase.");
         // Pick random speaker (or just me if solo) and start expression phase
         final speakerId = participants[Random().nextInt(participants.length)].id;
         await sessionRef.update({
@@ -94,6 +101,8 @@ class _RegulationScreenState extends State<RegulationScreen> with SingleTickerPr
           'current_speaker': speakerId,
           'phase_start_time': FieldValue.serverTimestamp(),
         });
+      } else {
+        DebugService.info("Waiting for other participant to finish regulation.");
       }
 
       if (mounted) {
