@@ -23,7 +23,13 @@ Peacekeeper is a professional conflict coaching application designed to help ind
 - `src/frontend`: Flutter application codebase.
 - `src/backend`: FastAPI server handling AI logic and content.
 - `docs/`: Comprehensive architecture and requirement documentation.
-- `infrastructure/`: (Planned) Terraform configuration for GCP resources.
+
+## Documentation Links
+
+- [Functional Requirements](docs/requirements/functional.md)
+- [System Architecture](docs/architecture/systems-design.md)
+- [Deployment Guide](docs/DEPLOYMENT.md) - **New!** Instructions for Cloud Run & Android APK.
+- [Testing Guide](TESTING.md) - How to run automated tests.
 
 ## Status: Version 0.1+ (Development)
 The application is currently in active development. AI endpoints are fully functional, and monetization paths (Ads/Premium) are integrated.
