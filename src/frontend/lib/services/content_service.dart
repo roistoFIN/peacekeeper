@@ -7,6 +7,12 @@ import 'debug_service.dart';
 
 class ContentService {
   String get _baseUrl {
+    // 1. PRODUCTION (Release Build)
+    if (kReleaseMode) {
+      return 'https://peacekeeper-backend-483320.a.run.app'; // Update this after deployment if needed
+    }
+
+    // 2. DEVELOPMENT (Debug Mode)
     if (kIsWeb) return 'http://127.0.0.1:8000';
     if (Platform.isAndroid) return 'http://10.0.2.2:8000';
     return 'http://127.0.0.1:8000';

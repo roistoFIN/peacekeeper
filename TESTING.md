@@ -1,12 +1,10 @@
 # Testing Guide
 
-This project contains automated tests for both the Backend (FastAPI) and Frontend (Flutter).
+This project maintains automated tests for both the Backend (FastAPI) and Frontend (Flutter).
 
 ## Backend Tests
 
-The backend tests cover:
-- **Unit Tests:** Parsing logic and helpers.
-- **Integration Tests:** API endpoints (with mocked Vertex AI).
+The backend tests cover unit logic (parsers) and integration logic (API endpoints) using mocked Vertex AI responses.
 
 ### Prerequisites
 1. Navigate to the backend directory:
@@ -28,32 +26,29 @@ Run all tests with:
 pytest tests/
 ```
 
-Expected output:
-```
-tests/test_main.py ....                                                  [100%]
-4 passed in 0.xxs
-```
-
 ---
 
 ## Frontend Tests
 
-The frontend tests cover:
-- **Widget Tests:** UI rendering and basic interaction (StartScreen, etc.).
+The frontend tests use `flutter_test` to verify UI navigation and widget composition.
 
-### Prerequisites
-1. Navigate to the frontend directory:
-   ```bash
-   cd src/frontend
-   ```
+### Key Test Files
+- `test/start_screen_test.dart`: Verifies the landing page UI and navigation buttons.
+- `test/session_creation_test.dart`: Verifies the flow from SOS button to Session Creation (mocking Firebase).
+- `test/widget_test.dart`: A basic smoke test for app initialization.
+
+### Mocking Strategy
+The tests use a custom `mock.dart` helper to mock:
+- **Firebase Core:** Intercepts initialization calls to prevent platform errors.
+- **Firebase Auth:** Mocks anonymous sign-in to return a test user.
+- **Platform Channels:** Uses `MethodChannel` mocks for compatibility.
 
 ### Running Tests
 Run all tests with:
 ```bash
+cd src/frontend
 flutter test
 ```
 
-To run a specific test file:
-```bash
-flutter test test/start_screen_test.dart
-```
+### Known Limitations
+- **Firestore:** Deep integration tests involving complex Firestore data streams are currently limited due to the complexity of mocking binary Pigeon streams. These are covered by manual testing (see `docs/DEPLOYMENT.md`).
