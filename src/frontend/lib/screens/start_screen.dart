@@ -23,6 +23,7 @@ class _StartScreenState extends State<StartScreen> {
   @override
   void initState() {
     super.initState();
+    DebugService.info("StartScreen initialized");
     _ensureAuthAndCheckPremium();
   }
 
@@ -30,19 +31,25 @@ class _StartScreenState extends State<StartScreen> {
     // 1. Ensure Auth
     if (FirebaseAuth.instance.currentUser == null) {
       try {
+        DebugService.info("Performing anonymous sign-in...");
         await FirebaseAuth.instance.signInAnonymously();
+        DebugService.info("Anonymous sign-in successful: ${FirebaseAuth.instance.currentUser?.uid}");
       } catch (e) {
         DebugService.error("Auth error", e);
       }
+    } else {
+      DebugService.info("User already authenticated: ${FirebaseAuth.instance.currentUser?.uid}");
     }
     
     // 2. Check Premium
     final status = await SubscriptionService.isPremium();
+    DebugService.info("Premium Status: $status");
     if (mounted) setState(() => _isPremium = status);
   }
 
   Future<void> _createSoloSession() async {
     try {
+      DebugService.info("Action: Creating Solo Session");
       showDialog(
         context: context,
         barrierDismissible: false,
@@ -58,6 +65,7 @@ class _StartScreenState extends State<StartScreen> {
 
       // Generate a unique ID for solo session (doesn't need to be 6-digit readable)
       final sessionId = "solo_${user.uid}_${DateTime.now().millisecondsSinceEpoch}";
+      DebugService.info("Session ID generated: $sessionId");
 
       await FirebaseFirestore.instance.collection('sessions').doc(sessionId).set({
         'hostId': user.uid,
@@ -75,6 +83,7 @@ class _StartScreenState extends State<StartScreen> {
       });
 
       if (mounted) {
+        DebugService.info("Solo Session created successfully. Navigating...");
         Navigator.pop(context); // Close loading
         Navigator.push(
           context,
@@ -84,6 +93,7 @@ class _StartScreenState extends State<StartScreen> {
         );
       }
     } catch (e) {
+      DebugService.error("Solo Session creation failed", e);
       if (mounted) {
         Navigator.pop(context);
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Error: $e")));

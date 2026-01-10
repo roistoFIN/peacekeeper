@@ -22,6 +22,7 @@ class _SessionCreationScreenState extends State<SessionCreationScreen> {
   @override
   void initState() {
     super.initState();
+    DebugService.info("SessionCreationScreen initialized");
     _checkPremium();
     _createSession();
   }
@@ -33,9 +34,11 @@ class _SessionCreationScreenState extends State<SessionCreationScreen> {
 
   Future<void> _createSession() async {
     try {
+      DebugService.info("Action: Creating 2-Player Session");
       // 1. Ensure user is authenticated
       User? user = FirebaseAuth.instance.currentUser;
       if (user == null) {
+        DebugService.info("Re-authenticating user for session creation...");
         final userCredential = await FirebaseAuth.instance.signInAnonymously();
         user = userCredential.user;
       }
@@ -44,6 +47,7 @@ class _SessionCreationScreenState extends State<SessionCreationScreen> {
 
       // 2. Generate Code
       final code = _generateConflictCode();
+      DebugService.info("Conflict Code generated: $code");
 
       // 3. Create Session in Firestore
       // We use the code as the document ID for easy lookup by the joiner
@@ -62,6 +66,7 @@ class _SessionCreationScreenState extends State<SessionCreationScreen> {
       }
 
       // 4. Listen for partner joining
+      DebugService.info("Listening for partner to join session: $code");
       FirebaseFirestore.instance
           .collection('sessions')
           .doc(code)
@@ -71,6 +76,7 @@ class _SessionCreationScreenState extends State<SessionCreationScreen> {
           final data = snapshot.data();
           if (data != null && data['status'] == 'active') {
              if (mounted) {
+               DebugService.info("Partner connected to session: $code. Transitioning...");
                setState(() {
                  status = "connected";
                });

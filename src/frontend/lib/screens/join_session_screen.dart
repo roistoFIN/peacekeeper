@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'regulation_screen.dart';
 import '../services/subscription_service.dart';
+import '../services/debug_service.dart';
 import 'paywall_screen.dart';
 
 class JoinSessionScreen extends StatefulWidget {
@@ -20,6 +21,7 @@ class _JoinSessionScreenState extends State<JoinSessionScreen> {
   @override
   void initState() {
     super.initState();
+    DebugService.info("JoinSessionScreen initialized");
     _checkPremium();
     _codeController.addListener(_validateInput);
   }
@@ -43,12 +45,13 @@ class _JoinSessionScreenState extends State<JoinSessionScreen> {
   }
 
   Future<void> _joinSession() async {
+    final code = _codeController.text;
+    DebugService.info("Attempting to join session with code: $code");
+    
     setState(() {
       _isButtonEnabled = false; // Prevent double taps
     });
     
-    final code = _codeController.text;
-
     try {
       showDialog(
         context: context,
@@ -71,6 +74,7 @@ class _JoinSessionScreenState extends State<JoinSessionScreen> {
 
       if (!sessionDoc.exists) {
         Navigator.pop(context); // Close loading dialog
+        DebugService.info("Join Failed: Invalid code.");
         _showError("Invalid code. Please check and try again.");
         setState(() { _isButtonEnabled = true; });
         return;
@@ -79,12 +83,14 @@ class _JoinSessionScreenState extends State<JoinSessionScreen> {
       final data = sessionDoc.data();
       if (data != null && data['status'] == 'active') {
          Navigator.pop(context);
+         DebugService.info("Join Failed: Session full.");
          _showError("This session is already full.");
          setState(() { _isButtonEnabled = true; });
          return;
       }
 
       // 3. Join Session
+      DebugService.info("Joining session $code...");
       await sessionRef.update({
         'participants': FieldValue.arrayUnion([user.uid]),
         'status': 'active', // This triggers the listener on the Host's side
@@ -100,6 +106,7 @@ class _JoinSessionScreenState extends State<JoinSessionScreen> {
         );
       }
     } catch (e) {
+      DebugService.error("Error joining session", e);
       if (mounted) {
         Navigator.pop(context); // Close loading dialog
         _showError("Error joining: $e");

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:purchases_flutter/purchases_flutter.dart';
 import '../services/subscription_service.dart';
+import '../services/debug_service.dart';
 
 class PaywallScreen extends StatefulWidget {
   const PaywallScreen({super.key});
@@ -16,6 +17,7 @@ class _PaywallScreenState extends State<PaywallScreen> {
   @override
   void initState() {
     super.initState();
+    DebugService.info("User entered PaywallScreen");
     _fetchOfferings();
   }
 
@@ -30,26 +32,33 @@ class _PaywallScreenState extends State<PaywallScreen> {
   }
 
   Future<void> _purchase(Package package) async {
+    DebugService.info("Attempting to purchase package: ${package.storeProduct.identifier}");
     setState(() => _isLoading = true);
     final isSuccess = await SubscriptionService.purchasePackage(package);
     if (mounted) {
       setState(() => _isLoading = false);
       if (isSuccess) {
+        DebugService.info("Purchase SUCCESS: ${package.storeProduct.identifier}");
         Navigator.pop(context, true);
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Welcome to Premium!")));
+      } else {
+        DebugService.info("Purchase CANCELLED or FAILED: ${package.storeProduct.identifier}");
       }
     }
   }
 
   Future<void> _restore() async {
+    DebugService.info("Attempting to restore purchases");
     setState(() => _isLoading = true);
     final isSuccess = await SubscriptionService.restorePurchases();
     if (mounted) {
       setState(() => _isLoading = false);
       if (isSuccess) {
+        DebugService.info("Restore SUCCESS");
         Navigator.pop(context, true);
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Purchases restored!")));
       } else {
+        DebugService.info("Restore FAILED: No entitlements found.");
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("No active subscriptions found.")));
       }
     }
@@ -59,7 +68,7 @@ class _PaywallScreenState extends State<PaywallScreen> {
     final controller = TextEditingController();
     await showDialog(
       context: context,
-      builder: (context) => AlertDialog(
+      builder: (dialogContext) => AlertDialog(
         title: const Text("Redeem Code"),
         content: TextField(
           controller: controller,
@@ -67,19 +76,23 @@ class _PaywallScreenState extends State<PaywallScreen> {
           textCapitalization: TextCapitalization.characters,
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text("Cancel")),
+          TextButton(onPressed: () => Navigator.pop(dialogContext), child: const Text("Cancel")),
           FilledButton(
             onPressed: () async {
-              Navigator.pop(context);
+              final code = controller.text.trim();
+              DebugService.info("Redeeming promo code: $code");
+              Navigator.pop(dialogContext);
               setState(() => _isLoading = true);
-              final error = await SubscriptionService.redeemCode(controller.text.trim());
+              final error = await SubscriptionService.redeemCode(code);
               setState(() => _isLoading = false);
               
               if (mounted) {
                 if (error == null) {
+                  DebugService.info("Promo code REDEEMED: $code");
                   Navigator.pop(context, true);
                   ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Code redeemed! Premium unlocked.")));
                 } else {
+                  DebugService.error("Promo code FAILED: $code", error);
                   ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(error), backgroundColor: Colors.red));
                 }
               }
