@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:firebase_auth/firebase_auth.dart';
+import 'debug_service.dart';
 
 class ContentService {
   String get _baseUrl {
@@ -21,7 +22,7 @@ class ContentService {
       }
       return {};
     } catch (e) {
-      debugPrint("Error fetching vocab: $e");
+      DebugService.error("Error fetching vocab", e);
       return {};
     }
   }
@@ -52,8 +53,8 @@ class ContentService {
     if (_uid == null) return AIResult(error: "User not authenticated");
 
     try {
-      print(">>> AI REQUEST: $path");
-      print(">>> TEXT: $text");
+      DebugService.info(">>> AI REQUEST: $path");
+      DebugService.log(">>> TEXT: $text");
       
       final response = await http.post(
         Uri.parse('$_baseUrl$path'),
@@ -65,18 +66,18 @@ class ContentService {
         }),
       );
 
-      print("<<< AI RESPONSE ($path): ${response.statusCode}");
+      DebugService.info("<<< AI RESPONSE ($path): ${response.statusCode}");
       
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
-        print("<<< RESULT: ${data['result']}");
+        DebugService.log("<<< RESULT: ${data['result']}");
         return AIResult(
           result: data['result'],
           alternatives: data['alternatives'] != null ? List<String>.from(data['alternatives']) : null,
           isOffensive: data['is_offensive'] ?? false,
         );
       } else {
-        print("<<< ERROR BODY: ${response.body}");
+        DebugService.error("<<< ERROR BODY: ${response.body}");
         if (response.statusCode == 429) {
           final data = jsonDecode(response.body);
           return AIResult(error: "Rate limited", retryAfter: data['detail']['retry_after']);
@@ -84,7 +85,7 @@ class ContentService {
         return AIResult(error: "Server error: ${response.statusCode}");
       }
     } catch (e) {
-      print("!!! AI EXCEPTION: $e");
+      DebugService.error("!!! AI EXCEPTION", e);
       return AIResult(error: e.toString());
     }
   }

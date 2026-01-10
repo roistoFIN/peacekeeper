@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
+import 'debug_service.dart';
 
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -11,10 +12,10 @@ class AuthService {
   Future<User?> signInAnonymously() async {
     try {
       final userCredential = await _auth.signInAnonymously();
-      debugPrint("Signed in anonymously: ${userCredential.user?.uid}");
+      DebugService.info("Signed in anonymously: ${userCredential.user?.uid}");
       return userCredential.user;
     } catch (e) {
-      debugPrint("Error signing in anonymously: $e");
+      DebugService.error("Error signing in anonymously", e);
       // In a real app, rethrow or handle error
       return null;
     }

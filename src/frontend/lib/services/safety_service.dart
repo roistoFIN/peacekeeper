@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
+import 'debug_service.dart';
 
 class SafetyService {
   // Use 10.0.2.2 for Android Emulator, localhost for others
@@ -27,12 +28,12 @@ class SafetyService {
           flagged: data['flagged'] ?? false,
         );
       } else {
-        debugPrint('Backend error: ${response.statusCode}');
+        DebugService.error('Backend error: ${response.statusCode}');
         // Fallback: allow text if backend fails (or block, depending on policy)
         return SafetyCheckResult(isSafe: true, censoredText: text, flagged: false); 
       }
     } catch (e) {
-      debugPrint('Safety Check failed: $e');
+      DebugService.error('Safety Check failed', e);
       // Fallback for demo if backend isn't running
       return SafetyCheckResult(isSafe: true, censoredText: text, flagged: false);
     }

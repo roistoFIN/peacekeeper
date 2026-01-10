@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
+import 'debug_service.dart';
 
 class AdService {
   static Future<void> init() async {
@@ -25,10 +26,10 @@ class AdService {
       size: AdSize.mediumRectangle, // Close to "Native" look
       request: const AdRequest(),
       listener: BannerAdListener(
-        onAdLoaded: (_) => print('Ad loaded'),
+        onAdLoaded: (_) => DebugService.info('Ad loaded'),
         onAdFailedToLoad: (ad, error) {
           ad.dispose();
-          print('Ad failed to load: $error');
+          DebugService.error('Ad failed to load', error);
         },
       ),
     );

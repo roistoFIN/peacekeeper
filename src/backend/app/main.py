@@ -2,6 +2,7 @@ import os
 import re
 import time
 import hashlib
+import logging
 from typing import List, Dict, Any, Optional
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -13,6 +14,17 @@ import vertexai
 from vertexai.generative_models import GenerativeModel
 
 # --- Configuration ---
+# Global Debug Switch
+DEBUG_MODE = os.getenv("GOOGLE_CLOUD_PROJECT", "peacekeeper-483320").lower() == "true"
+
+# Setup Logging
+logging.basicConfig(
+    level=logging.DEBUG if DEBUG_MODE else logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(message)s",
+    datefmt="%H:%M:%S"
+)
+logger = logging.getLogger("peacekeeper")
+
 PROJECT_ID = os.getenv("GOOGLE_CLOUD_PROJECT", "peacekeeper-483320")
 REGION = "us-central1"
 
@@ -23,7 +35,11 @@ if not firebase_admin._apps:
 db = firestore.client()
 
 # Initialize Vertex AI
-vertexai.init(project=PROJECT_ID, location=REGION)
+try:
+    vertexai.init(project=PROJECT_ID, location=REGION)
+    logger.info(f"Vertex AI initialized for project {PROJECT_ID}")
+except Exception as e:
+    logger.error(f"Failed to initialize Vertex AI: {e}")
 
 system_instruction = (
     "You are an expert NVC (Non-Violent Communication) coach and mediator. "
@@ -88,7 +104,9 @@ async def get_cached_response(key_parts: List[str]):
         data = doc.to_dict()
         # Expire after 10 minutes
         if time.time() - data.get('timestamp', 0) < 600:
+            logger.debug(f"Cache HIT for key prefix: {key[:8]}")
             return data.get('response')
+    logger.debug(f"Cache MISS for key prefix: {key[:8]}")
     return None
 
 async def save_cached_response(key_parts: List[str], response: Any):
@@ -114,6 +132,8 @@ class AIResponse(BaseModel):
 
 @app.post("/ai/neutralize-observation", response_model=AIResponse)
 async def neutralize_observation(req: AIRequest):
+    logger.info(f"Endpoint: neutralize-observation | User: {req.user_id} | Text: {req.text[:50]}...")
+    
     cache_key = [req.user_id, "neutralize", req.text or ""]
     cached = await get_cached_response(cache_key)
     if cached:
@@ -130,8 +150,13 @@ async def neutralize_observation(req: AIRequest):
         "Alternatives: alt1, alt2, ..."
     ).format(text=req.text)
     
-    response = model.generate_content(prompt)
-    resp_text = response.text.strip()
+    try:
+        response = model.generate_content(prompt)
+        resp_text = response.text.strip()
+        logger.debug(f"Gemini Response: {resp_text}")
+    except Exception as e:
+        logger.error(f"Gemini Error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
     
     # Parse the AI response
     is_offensive = "Judgment: Yes" in resp_text
@@ -148,6 +173,7 @@ async def neutralize_observation(req: AIRequest):
 
 @app.post("/ai/refine-request", response_model=AIResponse)
 async def refine_request(req: AIRequest):
+    logger.info(f"Endpoint: refine-request | User: {req.user_id}")
     context = req.context or {}
     cache_key = [req.user_id, "refine", req.text or "", str(context)]
     cached = await get_cached_response(cache_key)
@@ -165,8 +191,13 @@ async def refine_request(req: AIRequest):
         "Alternatives: alt1, alt2, ..."
     ).format(text=req.text, feelings=context.get('feelings'), needs=context.get('needs'))
     
-    response = model.generate_content(prompt)
-    resp_text = response.text.strip()
+    try:
+        response = model.generate_content(prompt)
+        resp_text = response.text.strip()
+        logger.debug(f"Gemini Response: {resp_text}")
+    except Exception as e:
+        logger.error(f"Gemini Error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
     
     # Parse the AI response
     is_offensive = "Judgment: Yes" in resp_text
@@ -181,6 +212,7 @@ async def refine_request(req: AIRequest):
 
 @app.post("/ai/suggest-feelings", response_model=AIResponse)
 async def suggest_feelings(req: AIRequest):
+    logger.info(f"Endpoint: suggest-feelings | User: {req.user_id}")
     # Check cache first
     cache_key = [req.user_id, "feelings", req.text or ""]
     cached = await get_cached_response(cache_key)
@@ -195,12 +227,14 @@ async def suggest_feelings(req: AIRequest):
     
     response = model.generate_content(prompt)
     result = [w.strip().lower() for w in response.text.split(",") if w.strip()]
+    logger.debug(f"Generated Feelings: {result}")
     
     await save_cached_response(cache_key, result)
     return AIResponse(result=result)
 
 @app.post("/ai/suggest-needs", response_model=AIResponse)
 async def suggest_needs(req: AIRequest):
+    logger.info(f"Endpoint: suggest-needs | User: {req.user_id}")
     feelings = req.context.get("feelings", "") if req.context else ""
     cache_key = [req.user_id, "needs", req.text or "", feelings]
     cached = await get_cached_response(cache_key)
@@ -214,12 +248,14 @@ async def suggest_needs(req: AIRequest):
     
     response = model.generate_content(prompt)
     result = [w.strip().lower() for w in response.text.split(",") if w.strip()]
+    logger.debug(f"Generated Needs: {result}")
     
     await save_cached_response(cache_key, result)
     return AIResponse(result=result)
 
 @app.post("/ai/generate-reflection", response_model=AIResponse)
 async def generate_reflection(req: AIRequest):
+    logger.info(f"Endpoint: generate-reflection | User: {req.user_id}")
     ctx = req.context or {}
     cache_key = [req.user_id, "reflection", str(ctx)]
     cached = await get_cached_response(cache_key)
@@ -240,14 +276,19 @@ async def generate_reflection(req: AIRequest):
         f"Tone: {tone}. Format: Just the reflection text."
     ).format(observation=ctx.get('observation'), feelings=ctx.get('feelings'), needs=ctx.get('needs'), request=ctx.get('request'))
     
-    response = model.generate_content(prompt)
-    result = response.text.strip()
-    
-    await save_cached_response(cache_key, result)
-    return AIResponse(result=result)
+    try:
+        response = model.generate_content(prompt)
+        result = response.text.strip()
+        logger.debug(f"Generated Reflection: {result}")
+        await save_cached_response(cache_key, result)
+        return AIResponse(result=result)
+    except Exception as e:
+        logger.error(f"Reflection Generation Error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/content/vocabulary")
 def get_vocabulary():
+    logger.info("Endpoint: get_vocabulary")
     feelings_doc = db.collection('nvc_vocabulary').document('feelings').get()
     needs_doc = db.collection('nvc_vocabulary').document('needs').get()
     return {

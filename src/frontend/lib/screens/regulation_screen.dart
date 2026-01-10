@@ -6,6 +6,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'waiting_screen.dart';
 import 'guided_expression_screen.dart';
 import '../services/subscription_service.dart';
+import '../services/debug_service.dart';
 import 'paywall_screen.dart';
 
 class RegulationScreen extends StatefulWidget {
@@ -110,7 +111,7 @@ class _RegulationScreenState extends State<RegulationScreen> with SingleTickerPr
       }
 
     } catch (e) {
-      debugPrint("Error in regulation continue: $e");
+      DebugService.error("Error in regulation continue", e);
       setState(() => _isProcessing = false);
     }
   }

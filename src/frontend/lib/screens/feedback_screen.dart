@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import '../services/debug_service.dart';
 
 class FeedbackScreen extends StatefulWidget {
   final String? sessionId;
@@ -40,7 +41,7 @@ class _FeedbackScreenState extends State<FeedbackScreen> {
         Navigator.pop(context);
       }
     } catch (e) {
-      debugPrint("Error sending feedback: $e");
+      DebugService.error("Error sending feedback", e);
       if (mounted) {
         setState(() => _isSubmitting = false);
         ScaffoldMessenger.of(context).showSnackBar(

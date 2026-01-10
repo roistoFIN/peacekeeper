@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'dart:math';
 import 'regulation_screen.dart';
 import '../services/subscription_service.dart';
+import '../services/debug_service.dart';
 import 'paywall_screen.dart';
 
 class SessionCreationScreen extends StatefulWidget {
@@ -85,7 +86,7 @@ class _SessionCreationScreenState extends State<SessionCreationScreen> {
       });
 
     } catch (e) {
-      debugPrint("Error creating session: $e");
+      DebugService.error("Error creating session", e);
       // Handle error (show snackbar, etc.)
     }
   }

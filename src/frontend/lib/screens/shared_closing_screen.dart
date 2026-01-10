@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import '../services/ad_service.dart';
 import '../services/subscription_service.dart';
+import '../services/debug_service.dart';
 import 'start_screen.dart';
 import 'feedback_screen.dart';
 import 'paywall_screen.dart';
@@ -41,27 +42,29 @@ class _SharedClosingScreenState extends State<SharedClosingScreen> {
       
       if (!isPremium) {
         _bannerAd = AdService.createBannerAd();
-        _bannerAd!.load().then((_) {
-          if (mounted) setState(() => _isAdLoaded = true);
-        });
+        if (_bannerAd != null) {
+          _bannerAd!.load().then((_) {
+            if (mounted) setState(() => _isAdLoaded = true);
+          });
+        }
       }
     }
   }
 
   Future<List<String>> _fetchEmotions() async {
     try {
-      print("DEBUG: Fetching emotions for session: ${widget.sessionId}");
+      DebugService.info("Fetching emotions for session: ${widget.sessionId}");
       final snapshot = await FirebaseFirestore.instance
           .collection('sessions')
           .doc(widget.sessionId)
           .collection('participant_states')
           .get();
 
-      print("DEBUG: Found ${snapshot.docs.length} participant docs");
+      DebugService.info("Found ${snapshot.docs.length} participant docs");
       final Set<String> allEmotions = {};
       for (var doc in snapshot.docs) {
         final data = doc.data();
-        print("DEBUG: Doc ${doc.id} emotions: ${data['emotions']}");
+        DebugService.info("Doc ${doc.id} emotions: ${data['emotions']}");
         if (data['emotions'] != null) {
           final List<dynamic> emotions = data['emotions'];
           allEmotions.addAll(emotions.cast<String>());
@@ -69,7 +72,7 @@ class _SharedClosingScreenState extends State<SharedClosingScreen> {
       }
       return allEmotions.toList();
     } catch (e) {
-      print("DEBUG: Error fetching emotions: $e");
+      DebugService.error("Error fetching emotions", e);
       return [];
     }
   }
@@ -86,7 +89,7 @@ class _SharedClosingScreenState extends State<SharedClosingScreen> {
          }, SetOptions(merge: true));
       }
     } catch (e) {
-      debugPrint("Error saving rating: $e");
+      DebugService.error("Error saving rating", e);
     }
 
     // 2. Logic: If 1 star, open feedback

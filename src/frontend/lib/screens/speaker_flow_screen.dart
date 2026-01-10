@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../services/content_service.dart';
 import '../services/subscription_service.dart';
+import '../services/debug_service.dart';
 import 'paywall_screen.dart';
 
 class SpeakerFlowScreen extends StatefulWidget {
@@ -185,6 +186,7 @@ class _SpeakerFlowScreenState extends State<SpeakerFlowScreen> {
   }
 
   void _nextPage() {
+    DebugService.info("Navigating to step ${_currentStep + 2}");
     _pageController.nextPage(duration: const Duration(milliseconds: 300), curve: Curves.easeInOut);
     setState(() { _currentStep++; _aiAlternatives = []; _isOffensive = false; });
     if (_currentStep == 1) _getFeelingsSuggestions();
@@ -192,6 +194,7 @@ class _SpeakerFlowScreenState extends State<SpeakerFlowScreen> {
   }
 
   void _prevPage() {
+    DebugService.info("Navigating back to step ${_currentStep}");
     _pageController.previousPage(duration: const Duration(milliseconds: 300), curve: Curves.easeInOut);
     setState(() { _currentStep--; _aiAlternatives = []; _isOffensive = false; });
   }
@@ -204,6 +207,7 @@ class _SpeakerFlowScreenState extends State<SpeakerFlowScreen> {
     if (currentText == _lastVettedText) return !_isOffensive;
 
     setState(() => _isProcessingAI = true);
+    DebugService.log("Checking observation for neutrality: '$currentText'");
     final result = await _contentService.neutralizeObservation("When $currentText");
     
     if (mounted) {
@@ -213,6 +217,7 @@ class _SpeakerFlowScreenState extends State<SpeakerFlowScreen> {
         _isOffensive = result.isOffensive;
         _aiAlternatives = result.alternatives ?? (result.result != currentText ? [result.result] : []);
       });
+      if (result.isOffensive) DebugService.info("Observation flagged as offensive.");
       return !result.isOffensive && _aiAlternatives.isEmpty;
     }
     return true;
@@ -220,12 +225,14 @@ class _SpeakerFlowScreenState extends State<SpeakerFlowScreen> {
 
   Future<void> _getFeelingsSuggestions() async {
     if (!_isPremium) return;
+    DebugService.log("Fetching feeling suggestions...");
     final result = await _contentService.suggestFeelings("When ${_observationController.text}");
     if (mounted && !result.hasError) setState(() => _aiSuggestedFeelings = List<String>.from(result.result));
   }
 
   Future<void> _getNeedsSuggestions() async {
     if (!_isPremium) return;
+    DebugService.log("Fetching need suggestions...");
     final result = await _contentService.suggestNeeds("When ${_observationController.text}", _selectedFeelings);
     if (mounted && !result.hasError) setState(() => _aiSuggestedNeeds = List<String>.from(result.result));
   }
@@ -237,6 +244,7 @@ class _SpeakerFlowScreenState extends State<SpeakerFlowScreen> {
     if (currentReq == _lastVettedRequest) return !_isOffensive;
 
     setState(() => _isProcessingAI = true);
+    DebugService.log("Refining request: '$currentReq'");
     final result = await _contentService.refineRequest("Would you be willing to $currentReq", {
       'feelings': _selectedFeelings.join(", "),
       'needs': _selectedNeeds.join(", "),
@@ -257,6 +265,7 @@ class _SpeakerFlowScreenState extends State<SpeakerFlowScreen> {
         
         _aiAlternatives = alts;
       });
+      if (result.isOffensive) DebugService.info("Request flagged as offensive.");
       return !result.isOffensive && _aiAlternatives.isEmpty;
     }
     return true;
@@ -264,6 +273,7 @@ class _SpeakerFlowScreenState extends State<SpeakerFlowScreen> {
 
   Future<void> _sendMessage() async {
     final uid = FirebaseAuth.instance.currentUser!.uid;
+    DebugService.info("Sending final message for user $uid");
     final fullMessage = {
       'observation': "When ${_observationController.text}",
       'emotions': _selectedFeelings,
