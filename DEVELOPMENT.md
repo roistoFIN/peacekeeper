@@ -72,7 +72,13 @@ Since sensitive files like `google-services.json` and `firebase_options.dart` ar
     ```
     The server will run at `http://127.0.0.1:8000`.
 
-## 5. Deployment (GCP)
+### 6. Real Device Testing (Android)
 
-- **Backend**: Deployed to Google Cloud Run using the provided `Dockerfile`.
-- **Infrastructure**: Managed via Terraform in the `infrastructure/` directory.
+When testing on a physical Android device:
+1.  **Connectivity:** The app is configured to use the production backend URL for Android by default to bypass local network restrictions.
+2.  **App Check Debug Token:**
+    - Run the app in debug mode: `flutter run`.
+    - Look for the **Firebase App Check debug token** in the `logcat` or console output.
+    - Copy this token and add it to the **App Check > Apps > [Your App] > Manage Debug Tokens** section in the Firebase Console.
+    - This allows your physical device to bypass App Check during development.
+

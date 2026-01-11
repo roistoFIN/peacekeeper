@@ -431,7 +431,7 @@ class _SpeakerFlowScreenState extends State<SpeakerFlowScreen> {
   }
 
   Widget _buildObservationStep() {
-    return Padding(
+    return SingleChildScrollView(
       padding: const EdgeInsets.all(24.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -454,7 +454,7 @@ class _SpeakerFlowScreenState extends State<SpeakerFlowScreen> {
           const SizedBox(height: 24),
           TextField(controller: _observationController, maxLength: 1000, maxLines: 2, decoration: const InputDecoration(prefixText: 'When ', border: OutlineInputBorder(), filled: true)),
           _buildAlternativesBox(_observationController, "Next", stoppingQuestion: "Am I certain about this interpretation?"),
-          const Spacer(),
+          const SizedBox(height: 24),
           _buildStepButtons(
             onNext: () async {
               if (_aiAlternatives.isNotEmpty && !_isOffensive) { 
@@ -536,7 +536,7 @@ class _SpeakerFlowScreenState extends State<SpeakerFlowScreen> {
   }
 
   Widget _buildRequestStep() {
-    return Padding(
+    return SingleChildScrollView(
       padding: const EdgeInsets.all(24.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -560,7 +560,7 @@ class _SpeakerFlowScreenState extends State<SpeakerFlowScreen> {
           const SizedBox(height: 24),
           TextField(controller: _requestController, maxLength: 1000, maxLines: 2, decoration: const InputDecoration(prefixText: "Would you be willing to ", border: OutlineInputBorder(), filled: true)),
           _buildAlternativesBox(_requestController, "Preview", stoppingQuestion: "Is my partner bad, or simply different from me?"),
-          const Spacer(),
+          const SizedBox(height: 24),
           _buildStepButtons(
             onNext: () async {
               if (_aiAlternatives.isNotEmpty && !_isOffensive) { 

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_app_check/firebase_app_check.dart';
 import 'firebase_options.dart';
@@ -18,14 +19,12 @@ void main() async {
     // Initialize App Check
     try {
       await FirebaseAppCheck.instance.activate(
-        androidProvider: AndroidProvider.debug,
-        appleProvider: AppleProvider.debug,
-        // In development/test, this will fail on Web without a valid key/registration.
-        // We catch it so the app doesn't crash.
+        androidProvider: kReleaseMode ? AndroidProvider.playIntegrity : AndroidProvider.debug,
+        appleProvider: kReleaseMode ? AppleProvider.appAttest : AppleProvider.debug,
         webProvider: ReCaptchaV3Provider('recaptcha-v3-site-key'),
       );
     } catch (e) {
-      DebugService.error("App Check init failed (expected in dev without valid keys)", e);
+      DebugService.error("App Check init failed", e);
     }
 
     await SubscriptionService.init();

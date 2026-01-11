@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'dart:math';
 import 'session_creation_screen.dart';
 import 'join_session_screen.dart';
 import 'feedback_screen.dart';
@@ -9,6 +8,7 @@ import 'paywall_screen.dart';
 import 'regulation_screen.dart';
 import '../services/subscription_service.dart';
 import '../services/debug_service.dart';
+import '../widgets/peacekeeper_logo.dart';
 
 class StartScreen extends StatefulWidget {
   const StartScreen({super.key});
@@ -232,100 +232,122 @@ class _StartScreenState extends State<StartScreen> {
             icon: const Icon(Icons.info_outline, color: Colors.blueGrey),
             tooltip: 'About this app',
           ),
-          const SizedBox(width: 16),
-        ],
-      ),
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              const Text(
-                'Peacekeeper: Couples Coach',
-                style: TextStyle(
-                  fontSize: 36,
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: -0.5,
+                            const SizedBox(width: 16),
+                  ],
                 ),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 60),
-              ElevatedButton(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const SessionCreationScreen(),
+                body: SafeArea(
+                  child: Center(
+                    child: SingleChildScrollView(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                                              // Logo and Title Area
+                                              Column(
+                                                children: [
+                                                  const PeacekeeperLogo(size: 100),
+                                                  const SizedBox(height: 24),
+                                                  Text(                                  'Peacekeeper',
+                                  style: TextStyle(
+                                    fontSize: 40,
+                                    fontWeight: FontWeight.bold,
+                                    letterSpacing: -1.0,
+                                    color: Theme.of(context).primaryColor,
+                                  ),
+                                  textAlign: TextAlign.center,
+                                ),
+                                const Text(
+                                  'COUPLES COACH',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w600,
+                                    letterSpacing: 1.5,
+                                    color: Colors.grey,
+                                  ),
+                                  textAlign: TextAlign.center,
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 48),
+                            ElevatedButton(
+                              onPressed: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => const SessionCreationScreen(),
+                                  ),
+                                );
+                              },
+                              style: ElevatedButton.styleFrom(
+                                padding: const EdgeInsets.symmetric(vertical: 24),
+                                backgroundColor: Colors.red.shade700,
+                                foregroundColor: Colors.white,
+                                elevation: 4,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
+                              ),
+                              child: const Text(
+                                'SOS – Conflict happening now',
+                                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+                            OutlinedButton(
+                              onPressed: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => const JoinSessionScreen(),
+                                  ),
+                                );
+                              },
+                              style: OutlinedButton.styleFrom(
+                                padding: const EdgeInsets.symmetric(vertical: 20),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
+                                side: BorderSide(
+                                  color: Theme.of(context).colorScheme.outline,
+                                  width: 1.5,
+                                ),
+                              ),
+                              child: const Text(
+                                'Join an ongoing conversation',
+                                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+                            TextButton(
+                              onPressed: _createSoloSession,
+                              style: TextButton.styleFrom(
+                                padding: const EdgeInsets.symmetric(vertical: 20),
+                              ),
+                              child: const Text(
+                                'Guide me to express my feelings, needs and request',
+                                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, decoration: TextDecoration.underline),
+                                textAlign: TextAlign.center,
+                              ),
+                            ),
+                            const SizedBox(height: 24),
+                            const Text(
+                              'This app helps you speak and listen more safely.',
+                              style: TextStyle(
+                                fontSize: 16,
+                                color: Colors.black54,
+                                height: 1.4,
+                              ),
+                              textAlign: TextAlign.center,
+                            ),
+                          ],
+                        ),
+                      ),
                     ),
-                  );
-                },
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 24),
-                  backgroundColor: Colors.red.shade700,
-                  foregroundColor: Colors.white,
-                  elevation: 4,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
                   ),
                 ),
-                child: const Text(
-                  'SOS – Conflict happening now',
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                ),
-              ),
-              const SizedBox(height: 16),
-              OutlinedButton(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const JoinSessionScreen(),
-                    ),
-                  );
-                },
-                style: OutlinedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 20),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  side: BorderSide(
-                    color: Theme.of(context).colorScheme.outline,
-                    width: 1.5,
-                  ),
-                ),
-                child: const Text(
-                  'Join an ongoing conversation',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
-                ),
-              ),
-              const SizedBox(height: 16),
-              TextButton(
-                onPressed: _createSoloSession,
-                style: TextButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 20),
-                ),
-                child: const Text(
-                  'Guide me to express my feelings, needs and request',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, decoration: TextDecoration.underline),
-                  textAlign: TextAlign.center,
-                ),
-              ),
-              const SizedBox(height: 24),
-              const Text(
-                'This app helps you speak and listen more safely.',
-                style: TextStyle(
-                  fontSize: 16,
-                  color: Colors.black54,
-                  height: 1.4,
-                ),
-                textAlign: TextAlign.center,
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
+              );
+              }
+            }
+            

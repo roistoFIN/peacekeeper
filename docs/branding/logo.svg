@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#607D8B;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#455A64;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <!-- Background Circle (Optional for Context) -->
+  <!-- Shield/Heart Shape -->
+  <path fill="url(#grad1)" d="M256 460C256 460 64 360 64 180C64 120 100 80 160 80C200 80 230 100 256 130C282 100 312 80 352 80C412 80 448 120 448 180C448 360 256 460 256 460Z" />
+  <!-- Inner Dove/Peace Line -->
+  <path fill="none" stroke="#FFFFFF" stroke-width="20" stroke-linecap="round" stroke-linejoin="round" d="M160 180C160 180 200 220 256 220C312 220 352 180 352 180" />
+</svg>
