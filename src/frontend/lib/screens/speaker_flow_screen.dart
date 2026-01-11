@@ -468,7 +468,7 @@ class _SpeakerFlowScreenState extends State<SpeakerFlowScreen> {
               }
             },
             isProcessing: _isProcessingAI,
-            canProceed: !_isOffensive
+            canProceed: !_isOffensive && _observationController.text.trim().isNotEmpty
           ),
         ],
       ),
@@ -529,7 +529,7 @@ class _SpeakerFlowScreenState extends State<SpeakerFlowScreen> {
             Wrap(spacing: 8, children: (cat['words'] as List).cast<String>().map((word) => FilterChip(label: Text(word), selected: selectedItems.contains(word), onSelected: (val) { setState(() { if (val && selectedItems.length < maxItems) selectedItems.add(word); if (!val) selectedItems.remove(word); }); })).toList()),
             const SizedBox(height: 16),
           ])),
-          _buildStepButtons(onNext: onContinue),
+          _buildStepButtons(onNext: onContinue, canProceed: selectedItems.isNotEmpty),
         ],
       ),
     );
@@ -573,7 +573,7 @@ class _SpeakerFlowScreenState extends State<SpeakerFlowScreen> {
               }
             },
             isProcessing: _isProcessingAI,
-            canProceed: !_isOffensive, 
+            canProceed: !_isOffensive && _requestController.text.trim().isNotEmpty, 
             nextLabel: "Preview"
           ),
         ],
