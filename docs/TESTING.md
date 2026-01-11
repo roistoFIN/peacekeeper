@@ -36,6 +36,8 @@ The frontend tests use `flutter_test` to verify UI navigation and widget composi
 - `test/start_screen_test.dart`: Verifies the landing page UI and navigation buttons.
 - `test/session_creation_test.dart`: Verifies the flow from SOS button to Session Creation (mocking Firebase).
 - `test/widget_test.dart`: A basic smoke test for app initialization.
+- `test/safety_service_test.dart`: Verifies the regex logic for detecting blame patterns and offensive language locally.
+- `test/layout_test.dart`: Verifies that key screens (e.g., Paywall) render without overflow errors on small devices.
 
 ### Mocking Strategy
 The tests use a custom `mock.dart` helper to mock:
