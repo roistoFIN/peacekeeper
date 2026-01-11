@@ -6,6 +6,7 @@ import 'regulation_screen.dart';
 import '../services/subscription_service.dart';
 import '../services/debug_service.dart';
 import 'paywall_screen.dart';
+import '../widgets/peacekeeper_logo.dart';
 
 class SessionCreationScreen extends StatefulWidget {
   const SessionCreationScreen({super.key});
@@ -106,7 +107,8 @@ class _SessionCreationScreenState extends State<SessionCreationScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Peacekeeper: Couples Coach"),
+        title: const PeacekeeperLogo(size: 40),
+        centerTitle: true,
         leading: IconButton(
           icon: const Icon(Icons.close),
           onPressed: () => Navigator.of(context).pop(),

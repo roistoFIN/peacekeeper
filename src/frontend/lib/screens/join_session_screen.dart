@@ -5,6 +5,7 @@ import 'regulation_screen.dart';
 import '../services/subscription_service.dart';
 import '../services/debug_service.dart';
 import 'paywall_screen.dart';
+import '../widgets/peacekeeper_logo.dart';
 
 class JoinSessionScreen extends StatefulWidget {
   const JoinSessionScreen({super.key});
@@ -135,7 +136,8 @@ class _JoinSessionScreenState extends State<JoinSessionScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Peacekeeper: Couples Coach'),
+        title: const PeacekeeperLogo(size: 40),
+        centerTitle: true,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.of(context).pop(),

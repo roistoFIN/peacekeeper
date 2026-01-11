@@ -8,7 +8,7 @@ class SafetyService {
   String get _baseUrl {
     // 1. PRODUCTION (Release Build)
     if (kReleaseMode) {
-      return 'https://peacekeeper-backend-483320.a.run.app';
+      return 'https://peacekeeper-backend-c7fnii4s3a-uc.a.run.app';
     }
 
     // 2. DEVELOPMENT (Debug Mode)

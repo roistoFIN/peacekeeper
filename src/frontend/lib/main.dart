@@ -17,21 +17,18 @@ void main() async {
     );
     
     // Initialize App Check
-    // SKIP in release mode for sideloaded APKs to prevent crashes (Play Integrity fails without Play Store)
-    if (!kReleaseMode) {
-      try {
-        await FirebaseAppCheck.instance.activate(
-          androidProvider: AndroidProvider.debug,
-          appleProvider: AppleProvider.debug,
-          webProvider: ReCaptchaV3Provider('recaptcha-v3-site-key'),
-        );
-      } catch (e) {
-        DebugService.error("App Check init failed", e);
-      }
+    try {
+      await FirebaseAppCheck.instance.activate(
+        androidProvider: kReleaseMode ? AndroidProvider.playIntegrity : AndroidProvider.debug,
+        appleProvider: kReleaseMode ? AppleProvider.appAttest : AppleProvider.debug,
+        webProvider: ReCaptchaV3Provider('recaptcha-v3-site-key'),
+      );
+    } catch (e) {
+      DebugService.error("App Check init failed", e);
     }
 
-    // await SubscriptionService.init();
-    // await AdService.init();
+    await SubscriptionService.init();
+    await AdService.init();
   } catch (e) {
     DebugService.error("Initialization error", e);
     // This allows the app to run on Linux/Web even if config is missing,

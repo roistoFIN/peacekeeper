@@ -8,6 +8,7 @@ import 'guided_expression_screen.dart';
 import '../services/subscription_service.dart';
 import '../services/debug_service.dart';
 import 'paywall_screen.dart';
+import '../widgets/peacekeeper_logo.dart';
 
 class RegulationScreen extends StatefulWidget {
   final String sessionId;
@@ -129,7 +130,8 @@ class _RegulationScreenState extends State<RegulationScreen> with SingleTickerPr
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Peacekeeper: Couples Coach"),
+        title: const PeacekeeperLogo(size: 40),
+        centerTitle: true,
         backgroundColor: Colors.transparent,
         elevation: 0,
         automaticallyImplyLeading: false,
@@ -172,47 +174,51 @@ class _RegulationScreenState extends State<RegulationScreen> with SingleTickerPr
         ],
       ),
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Text('Breathe together', style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold), textAlign: TextAlign.center),
-              const SizedBox(height: 16),
-              const Text('When the body calms down, conversation becomes possible.', style: TextStyle(fontSize: 16, color: Colors.black54), textAlign: TextAlign.center),
-              const SizedBox(height: 80),
-              Center(
-                child: AnimatedBuilder(
-                  animation: _breathingAnimation,
-                  builder: (context, child) {
-                    return Container(
-                      width: 150 * _breathingAnimation.value,
-                      height: 150 * _breathingAnimation.value,
-                      decoration: BoxDecoration(shape: BoxShape.circle, color: Theme.of(context).colorScheme.primary.withOpacity(0.2)),
-                      child: Center(
-                        child: Container(
-                          width: 100, 
-                          height: 100, 
-                          decoration: BoxDecoration(shape: BoxShape.circle, color: Theme.of(context).colorScheme.primary.withOpacity(0.5))
-                        ),
-                      ),
-                    );
-                  },
-                ),
+        child: Center(
+          child: SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24.0),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Text('Breathe together', style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold), textAlign: TextAlign.center),
+                  const SizedBox(height: 16),
+                  const Text('When the body calms down, conversation becomes possible.', style: TextStyle(fontSize: 16, color: Colors.black54), textAlign: TextAlign.center),
+                  const SizedBox(height: 40),
+                  Center(
+                    child: AnimatedBuilder(
+                      animation: _breathingAnimation,
+                      builder: (context, child) {
+                        return Container(
+                          width: 150 * _breathingAnimation.value,
+                          height: 150 * _breathingAnimation.value,
+                          decoration: BoxDecoration(shape: BoxShape.circle, color: Theme.of(context).colorScheme.primary.withOpacity(0.2)),
+                          child: Center(
+                            child: Container(
+                              width: 100, 
+                              height: 100, 
+                              decoration: BoxDecoration(shape: BoxShape.circle, color: Theme.of(context).colorScheme.primary.withOpacity(0.5))
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                  const SizedBox(height: 40),
+                  Text('$_secondsRemaining', style: const TextStyle(fontSize: 48, fontWeight: FontWeight.w300, fontFeatures: [FontFeature.tabularFigures()])),
+                  const Text('seconds', style: TextStyle(fontSize: 16, color: Colors.black54)),
+                  const SizedBox(height: 40),
+                  ElevatedButton(
+                    onPressed: (_secondsRemaining == 0 && !_isProcessing) ? _handleContinue : null,
+                    style: ElevatedButton.styleFrom(minimumSize: const Size.fromHeight(56), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16))),
+                    child: _isProcessing 
+                      ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2)) 
+                      : const Text('Continue'),
+                  ),
+                  const SizedBox(height: 24),
+                ],
               ),
-              const SizedBox(height: 80),
-              Text('$_secondsRemaining', style: const TextStyle(fontSize: 48, fontWeight: FontWeight.w300, fontFeatures: [FontFeature.tabularFigures()])),
-              const Text('seconds', style: TextStyle(fontSize: 16, color: Colors.black54)),
-              const Spacer(),
-              ElevatedButton(
-                onPressed: (_secondsRemaining == 0 && !_isProcessing) ? _handleContinue : null,
-                style: ElevatedButton.styleFrom(minimumSize: const Size.fromHeight(56), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16))),
-                child: _isProcessing 
-                  ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2)) 
-                  : const Text('Continue'),
-              ),
-              const SizedBox(height: 24),
-            ],
+            ),
           ),
         ),
       ),

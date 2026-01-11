@@ -38,9 +38,14 @@ The command will output a URL (e.g., `https://peacekeeper-backend-xyz.a.run.app`
 To create a downloadable installation package for Android users without using the Play Store.
 
 ### Configuration
-The app automatically switches API endpoints based on the build mode:
-- **Debug Mode (`flutter run`):** Points to `localhost` (10.0.2.2 for Android).
-- **Release Mode (`flutter build apk`):** Points to the production Cloud Run URL.
+The app automatically switches API endpoints based on the platform and build mode:
+- **Web/Desktop Debug:** Points to `localhost:8000`.
+- **Android (All modes):** Points to the production Cloud Run URL (`https://peacekeeper-backend-c7fnii4s3a-uc.a.run.app`) to support testing on physical devices without complex networking.
+- **Release Mode:** Points to the production Cloud Run URL.
+
+### App Check & Security
+- **Release Builds:** App Check is enabled using `AndroidProvider.playIntegrity`. Ensure your SHA-256 fingerprints are registered in the Firebase Console under App Check.
+- **Sideloading:** If sideloading an APK, App Check might fall back to a placeholder token if Play Integrity is unavailable. The app is configured to handle this without crashing.
 
 ### Build Command
 Run this from the frontend directory:

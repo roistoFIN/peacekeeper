@@ -1,0 +1,18 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="512"
+    android:viewportHeight="512">
+    <!-- Shield/Heart Shape -->
+    <path
+        android:fillColor="#607D8B"
+        android:pathData="M256,460C256,460 64,360 64,180C64,120 100,80 160,80C200,80 230,100 256,130C282,100 312,80 352,80C412,80 448,120 448,180C448,360 256,460 256,460Z"/>
+    <!-- Inner Smile/Dove Line -->
+    <path
+        android:fillColor="#00000000"
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="20"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:pathData="M160,180C160,180 200,220 256,220C312,220 352,180 352,180"/>
+</vector>

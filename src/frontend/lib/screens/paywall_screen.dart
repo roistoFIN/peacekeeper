@@ -107,7 +107,7 @@ class _PaywallScreenState extends State<PaywallScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Unlock Peacekeeper"), actions: [
+      appBar: AppBar(title: const Text("Unlock Premium"), actions: [
         TextButton(onPressed: _restore, child: const Text("Restore"))
       ]),
       body: _isLoading
@@ -150,10 +150,11 @@ class _PaywallScreenState extends State<PaywallScreen> {
     return Padding(
       padding: const EdgeInsets.only(bottom: 16.0),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Icon(icon, color: Colors.green, size: 20),
           const SizedBox(width: 12),
-          Text(text, style: const TextStyle(fontSize: 16)),
+          Expanded(child: Text(text, style: const TextStyle(fontSize: 16))),
         ],
       ),
     );

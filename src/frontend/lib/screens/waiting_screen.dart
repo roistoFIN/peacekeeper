@@ -5,6 +5,7 @@ import 'start_screen.dart';
 import '../services/subscription_service.dart';
 import '../services/debug_service.dart';
 import 'paywall_screen.dart';
+import '../widgets/peacekeeper_logo.dart';
 
 class WaitingScreen extends StatefulWidget {
   final String sessionId;
@@ -68,7 +69,8 @@ class _WaitingScreenState extends State<WaitingScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Peacekeeper: Couples Coach"),
+        title: const PeacekeeperLogo(size: 40),
+        centerTitle: true,
         automaticallyImplyLeading: false,
         actions: [
           _isPremium

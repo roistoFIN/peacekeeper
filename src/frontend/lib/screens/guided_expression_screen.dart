@@ -9,6 +9,7 @@ import '../services/content_service.dart';
 import '../services/subscription_service.dart';
 import '../services/debug_service.dart';
 import 'paywall_screen.dart';
+import '../widgets/peacekeeper_logo.dart';
 
 class GuidedExpressionScreen extends StatefulWidget {
   final String sessionId;
@@ -223,14 +224,16 @@ class _GuidedExpressionScreenState extends State<GuidedExpressionScreen> {
 
         return Scaffold(
           appBar: AppBar(
+            centerTitle: true,
             title: Row(
+              mainAxisSize: MainAxisSize.min,
               children: [
                 if (showTimer) ...[
                   const Icon(Icons.timer_outlined, size: 18),
                   const SizedBox(width: 8),
                   Text("$_secondsRemaining s", style: const TextStyle(fontSize: 16)),
                 ] else
-                  const Text("Peacekeeper: Couples Coach"),
+                  const PeacekeeperLogo(size: 40),
               ],
             ),
             actions: [

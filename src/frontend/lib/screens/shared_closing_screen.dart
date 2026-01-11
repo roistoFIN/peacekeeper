@@ -8,6 +8,7 @@ import '../services/debug_service.dart';
 import 'start_screen.dart';
 import 'feedback_screen.dart';
 import 'paywall_screen.dart';
+import '../widgets/peacekeeper_logo.dart';
 
 class SharedClosingScreen extends StatefulWidget {
   final String sessionId;
@@ -41,12 +42,12 @@ class _SharedClosingScreenState extends State<SharedClosingScreen> {
       setState(() => _isPremium = isPremium);
       
       if (!isPremium) {
-        _bannerAd = AdService.createBannerAd();
-        if (_bannerAd != null) {
-          _bannerAd!.load().then((_) {
+        _bannerAd = AdService.createBannerAd(
+          onLoaded: () {
             if (mounted) setState(() => _isAdLoaded = true);
-          });
-        }
+          },
+        );
+        _bannerAd?.load();
       }
     }
   }
@@ -124,7 +125,8 @@ class _SharedClosingScreenState extends State<SharedClosingScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Peacekeeper: Couples Coach"),
+        title: const PeacekeeperLogo(size: 40),
+        centerTitle: true,
         backgroundColor: Colors.transparent,
         elevation: 0,
         automaticallyImplyLeading: false,
