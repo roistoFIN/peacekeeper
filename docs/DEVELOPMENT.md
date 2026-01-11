@@ -2,7 +2,7 @@
 
 This document explains how to set up the development environment for the Peacekeeper project on a new machine.
 
-## 1. Prerequisites
+## 1. Prerequisites 
 
 - **Flutter SDK**: [Install Flutter](https://docs.flutter.dev/get-started/install)
 - **Dart SDK**: Included with Flutter.
