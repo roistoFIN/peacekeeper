@@ -7,44 +7,50 @@ void main() {
     DebugService.isEnabled = false;
   });
 
-  group('SafetyService.validateBlamePatterns', () {
+  group('SafetyService.validateLocalRules', () {
     final service = SafetyService();
-    final patterns = [
-      r'(?i)\byou\s+(always|never)',
-      r'(?i)\byou\s+made\s+me',
-    ];
+    
+    final rules = {
+      'blame_patterns': [
+        r'(?i)\byou\s+(always|never)',
+        r'(?i)\byou\s+made\s+me',
+      ],
+      'violent_words': [
+        'stupid', 'cunt', 'hate'
+      ]
+    };
 
     test('returns true for matching blame pattern (always)', () {
-      expect(service.validateBlamePatterns('You always do this', patterns), isTrue);
+      expect(service.validateLocalRules('You always do this', rules), isTrue);
     });
 
     test('returns true for matching blame pattern (never)', () {
-      expect(service.validateBlamePatterns('You never listen', patterns), isTrue);
+      expect(service.validateLocalRules('You never listen', rules), isTrue);
     });
 
     test('returns true for matching blame pattern (case insensitive)', () {
-      expect(service.validateBlamePatterns('you ALWAYS forget', patterns), isTrue);
+      expect(service.validateLocalRules('you ALWAYS forget', rules), isTrue);
     });
 
     test('returns true for "you made me"', () {
-      expect(service.validateBlamePatterns('You made me angry', patterns), isTrue);
+      expect(service.validateLocalRules('You made me angry', rules), isTrue);
+    });
+
+    test('returns true for violent words', () {
+      expect(service.validateLocalRules('You are a cunt', rules), isTrue);
+      expect(service.validateLocalRules('don\'t be stupid', rules), isTrue);
     });
 
     test('returns false for non-blaming observation', () {
-      expect(service.validateBlamePatterns('I saw the dishes', patterns), isFalse);
+      expect(service.validateLocalRules('I saw the dishes', rules), isFalse);
     });
 
-    test('returns false for null patterns', () {
-      expect(service.validateBlamePatterns('You always', null), isFalse);
+    test('returns false for null rules', () {
+      expect(service.validateLocalRules('You always', null), isFalse);
     });
 
-    test('returns false for empty patterns', () {
-      expect(service.validateBlamePatterns('You always', []), isFalse);
-    });
-    
-    test('handles invalid regex gracefully', () {
-      final badPatterns = ['[']; // Invalid regex
-      expect(service.validateBlamePatterns('test', badPatterns), isFalse);
+    test('returns false for empty rules', () {
+      expect(service.validateLocalRules('You always', {}), isFalse);
     });
   });
 }

@@ -21,7 +21,7 @@ class ContentService {
 
   Future<Map<String, dynamic>> fetchVocabulary() async {
     try {
-      final response = await http.get(Uri.parse('$_baseUrl/content/vocabulary'));
+      final response = await http.get(Uri.parse('$_baseUrl/content/vocabulary?t=${DateTime.now().millisecondsSinceEpoch}'));
       if (response.statusCode == 200) {
         return jsonDecode(response.body);
       }
