@@ -1,4 +1,4 @@
-# Development Guide: Peacekeeper: Couples Coach
+# Development Guide: Peacekeeper: Couples Coach 
 
 This document explains how to set up the development environment for the Peacekeeper project on a new machine.
 
