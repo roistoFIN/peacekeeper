@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../services/content_service.dart';
 import '../services/subscription_service.dart';
+import '../services/safety_service.dart';
 import '../services/debug_service.dart';
 import 'paywall_screen.dart';
 
@@ -17,6 +18,7 @@ class SpeakerFlowScreen extends StatefulWidget {
 class _SpeakerFlowScreenState extends State<SpeakerFlowScreen> {
   final PageController _pageController = PageController();
   final ContentService _contentService = ContentService();
+  final SafetyService _safetyService = SafetyService();
   int _currentStep = 0;
   bool _isLoading = true;
   bool _isPremium = false;
@@ -147,14 +149,16 @@ class _SpeakerFlowScreenState extends State<SpeakerFlowScreen> {
   void initState() {
     super.initState();
     _observationController.addListener(() {
-      if (_aiAlternatives.isNotEmpty && _observationController.text != _lastVettedText) {
-        setState(() { _aiAlternatives = []; _isOffensive = false; });
+      if (_observationController.text != _lastVettedText) {
+        if (_isOffensive) setState(() => _isOffensive = false);
+        if (_aiAlternatives.isNotEmpty) setState(() => _aiAlternatives = []);
       }
       setState(() {});
     });
     _requestController.addListener(() {
-      if (_aiAlternatives.isNotEmpty && _requestController.text != _lastVettedRequest) {
-        setState(() { _aiAlternatives = []; _isOffensive = false; });
+      if (_requestController.text != _lastVettedRequest) {
+        if (_isOffensive) setState(() => _isOffensive = false);
+        if (_aiAlternatives.isNotEmpty) setState(() => _aiAlternatives = []);
       }
       setState(() {});
     });
@@ -199,28 +203,58 @@ class _SpeakerFlowScreenState extends State<SpeakerFlowScreen> {
     setState(() { _currentStep--; _aiAlternatives = []; _isOffensive = false; });
   }
 
+  bool _failsLocalValidation(String text) {
+    final rules = _vocabulary['validation_rules'] as Map<String, dynamic>?;
+    if (rules == null) return false;
+    
+    final blamePatterns = rules['blame_patterns'] as List<dynamic>?;
+    return _safetyService.validateBlamePatterns(text, blamePatterns);
+  }
+
   // --- AI Logic ---
   Future<bool> _neutralizeObservation() async {
-    if (!_isPremium) return true;
     final currentText = _observationController.text.trim();
     if (currentText.length < 5) return true;
-    if (currentText == _lastVettedText) return !_isOffensive;
-
-    setState(() => _isProcessingAI = true);
-    DebugService.log("Checking observation for neutrality: '$currentText'");
-    final result = await _contentService.neutralizeObservation("When $currentText");
     
-    if (mounted) {
-      setState(() {
-        _isProcessingAI = false;
-        _lastVettedText = currentText;
-        _isOffensive = result.isOffensive;
-        _aiAlternatives = result.alternatives ?? (result.result != currentText ? [result.result] : []);
-      });
-      if (result.isOffensive) DebugService.info("Observation flagged as offensive.");
-      return !result.isOffensive && _aiAlternatives.isEmpty;
+    // 1. Premium User: AI Only
+    if (_isPremium) {
+      if (currentText == _lastVettedText) return !_isOffensive;
+
+      setState(() => _isProcessingAI = true);
+      DebugService.log("Checking observation for neutrality: '$currentText'");
+      final result = await _contentService.neutralizeObservation("When $currentText");
+      
+      if (mounted) {
+        setState(() {
+          _isProcessingAI = false;
+          _lastVettedText = currentText;
+          _isOffensive = result.isOffensive;
+          _aiAlternatives = result.alternatives ?? (result.result != currentText ? [result.result] : []);
+        });
+        if (result.isOffensive) DebugService.info("Observation flagged as offensive by AI.");
+        return !result.isOffensive && _aiAlternatives.isEmpty;
+      }
+      return true;
     }
-    return true;
+    
+    // 2. Free User: Local Regex Only
+    else {
+      if (_failsLocalValidation(currentText)) {
+         setState(() {
+           _isOffensive = true; 
+           _aiAlternatives = []; 
+           _lastVettedText = currentText;
+         });
+         DebugService.info("Observation flagged by local regex.");
+         return false; 
+      } else {
+         setState(() {
+           _isOffensive = false;
+           _lastVettedText = currentText;
+         });
+         return true;
+      }
+    }
   }
 
   Future<void> _getFeelingsSuggestions() async {
@@ -238,37 +272,59 @@ class _SpeakerFlowScreenState extends State<SpeakerFlowScreen> {
   }
 
   Future<bool> _refineRequest() async {
-    if (!_isPremium) return true;
     final currentReq = _requestController.text.trim();
     if (currentReq.length < 5) return true;
-    if (currentReq == _lastVettedRequest) return !_isOffensive;
-
-    setState(() => _isProcessingAI = true);
-    DebugService.log("Refining request: '$currentReq'");
-    final result = await _contentService.refineRequest("Would you be willing to $currentReq", {
-      'feelings': _selectedFeelings.join(", "),
-      'needs': _selectedNeeds.join(", "),
-    });
     
-    if (mounted) {
-      setState(() {
-        _isProcessingAI = false;
-        _lastVettedRequest = currentReq;
-        _isOffensive = result.isOffensive;
-        String mainResult = result.result;
-        if (mainResult.toLowerCase().startsWith("would you be willing to ")) mainResult = mainResult.substring(24).replaceFirst(RegExp(r'\?$'), '').trim();
-        
-        List<String> alts = result.alternatives?.map((s) {
-          if (s.toLowerCase().startsWith("would you be willing to ")) return s.substring(24).replaceFirst(RegExp(r'\?$'), '').trim();
-          return s;
-        }).toList() ?? (mainResult != currentReq ? [mainResult] : []);
-        
-        _aiAlternatives = alts;
+    // 1. Premium User: AI Only
+    if (_isPremium) {
+      if (currentReq == _lastVettedRequest) return !_isOffensive;
+
+      setState(() => _isProcessingAI = true);
+      DebugService.log("Refining request: '$currentReq'");
+      final result = await _contentService.refineRequest("Would you be willing to $currentReq", {
+        'feelings': _selectedFeelings.join(", "),
+        'needs': _selectedNeeds.join(", "),
       });
-      if (result.isOffensive) DebugService.info("Request flagged as offensive.");
-      return !result.isOffensive && _aiAlternatives.isEmpty;
+      
+      if (mounted) {
+        setState(() {
+          _isProcessingAI = false;
+          _lastVettedRequest = currentReq;
+          _isOffensive = result.isOffensive;
+          String mainResult = result.result;
+          if (mainResult.toLowerCase().startsWith("would you be willing to ")) mainResult = mainResult.substring(24).replaceFirst(RegExp(r'\?$'), '').trim();
+          
+          List<String> alts = result.alternatives?.map((s) {
+            if (s.toLowerCase().startsWith("would you be willing to ")) return s.substring(24).replaceFirst(RegExp(r'\?$'), '').trim();
+            return s;
+          }).toList() ?? (mainResult != currentReq ? [mainResult] : []);
+          
+          _aiAlternatives = alts;
+        });
+        if (result.isOffensive) DebugService.info("Request flagged as offensive by AI.");
+        return !result.isOffensive && _aiAlternatives.isEmpty;
+      }
+      return true;
     }
-    return true;
+
+    // 2. Free User: Local Regex Only
+    else {
+      if (_failsLocalValidation(currentReq)) {
+         setState(() {
+           _isOffensive = true; 
+           _aiAlternatives = []; 
+           _lastVettedRequest = currentReq;
+         });
+         DebugService.info("Request flagged by local regex.");
+         return false; 
+      } else {
+         setState(() {
+           _isOffensive = false;
+           _lastVettedRequest = currentReq;
+         });
+         return true;
+      }
+    }
   }
 
   Future<void> _sendMessage() async {
@@ -346,34 +402,50 @@ class _SpeakerFlowScreenState extends State<SpeakerFlowScreen> {
 
   Widget _buildAlternativesBox(TextEditingController controller, String nextButtonLabel, {String? stoppingQuestion}) {
     if (!_isPremium) {
-      return Container(
-        margin: const EdgeInsets.only(top: 16),
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: Colors.grey.shade100,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: Colors.grey.shade300),
-        ),
-        child: Row(
-          children: [
-            const Icon(Icons.lock_outline, color: Colors.grey),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text("AI Suggestions Locked", style: TextStyle(fontWeight: FontWeight.bold, color: Colors.grey)),
-                  const SizedBox(height: 4),
-                  const Text("Premium members get real-time help to phrase this neutrally.", style: TextStyle(fontSize: 12, color: Colors.black54)),
-                ],
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (_isOffensive)
+            const Padding(
+              padding: EdgeInsets.only(top: 16, bottom: 4),
+              child: Text(
+                "This language seems judgmental. Try sticking to the facts (what a camera would see).",
+                style: TextStyle(fontSize: 12, color: Colors.red, fontWeight: FontWeight.bold),
               ),
             ),
-            TextButton(
-              onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const PaywallScreen())).then((_) => _loadData()),
-              child: const Text("Unlock"),
+          Container(
+            margin: const EdgeInsets.only(top: 12),
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.grey.shade100,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: _isOffensive ? Colors.red.shade200 : Colors.grey.shade300, width: _isOffensive ? 2 : 1),
             ),
-          ],
-        ),
+            child: Row(
+              children: [
+                Icon(_isOffensive ? Icons.warning_amber : Icons.lock_outline, color: _isOffensive ? Colors.red : Colors.grey),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        _isOffensive ? "Validation Failed" : "AI Suggestions Locked",
+                        style: TextStyle(fontWeight: FontWeight.bold, color: _isOffensive ? Colors.red : Colors.grey),
+                      ),
+                      const SizedBox(height: 4),
+                      const Text("Premium members get real-time help to phrase this neutrally.", style: TextStyle(fontSize: 12, color: Colors.black54)),
+                    ],
+                  ),
+                ),
+                TextButton(
+                  onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const PaywallScreen())).then((_) => _loadData()),
+                  child: const Text("Unlock"),
+                ),
+              ],
+            ),
+          ),
+        ],
       );
     }
 
@@ -423,7 +495,12 @@ class _SpeakerFlowScreenState extends State<SpeakerFlowScreen> {
           ),
         )),
         if (_isOffensive) 
-          const Text("Please select a neutral alternative to continue.", style: TextStyle(fontSize: 12, color: Colors.red, fontWeight: FontWeight.bold))
+          Text(
+            _aiAlternatives.isEmpty 
+              ? "This language seems judgmental. Try sticking to the facts (what a camera would see)." 
+              : "Please select a neutral alternative to continue.", 
+            style: const TextStyle(fontSize: 12, color: Colors.red, fontWeight: FontWeight.bold)
+          )
         else
           Text("Tap to accept or click $nextButtonLabel to keep yours", style: const TextStyle(fontSize: 12, color: Colors.grey)),
       ],

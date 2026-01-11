@@ -350,7 +350,9 @@ def get_vocabulary():
     logger.info("Endpoint: get_vocabulary")
     feelings_doc = db.collection('nvc_vocabulary').document('feelings').get()
     needs_doc = db.collection('nvc_vocabulary').document('needs').get()
+    validation_doc = db.collection('config_metadata').document('validation_rules').get()
     return {
         "feelings": feelings_doc.to_dict() if feelings_doc.exists else {},
-        "needs": needs_doc.to_dict() if needs_doc.exists else {}
+        "needs": needs_doc.to_dict() if needs_doc.exists else {},
+        "validation_rules": validation_doc.to_dict() if validation_doc.exists else {}
     }

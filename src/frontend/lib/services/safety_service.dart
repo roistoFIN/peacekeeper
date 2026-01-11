@@ -43,6 +43,26 @@ class SafetyService {
       return SafetyCheckResult(isSafe: true, censoredText: text, flagged: false);
     }
   }
+
+  bool validateBlamePatterns(String text, List<dynamic>? patterns) {
+    if (patterns == null) return false;
+    for (final pattern in patterns) {
+      try {
+        var cleanPattern = pattern.toString();
+        bool ignoreCase = false;
+        if (cleanPattern.startsWith("(?i)")) {
+           ignoreCase = true;
+           cleanPattern = cleanPattern.substring(4);
+        }
+        if (RegExp(cleanPattern, caseSensitive: !ignoreCase).hasMatch(text)) {
+          return true;
+        }
+      } catch (e) {
+        DebugService.error("Invalid regex pattern: $pattern", e);
+      }
+    }
+    return false;
+  }
 }
 
 class SafetyCheckResult {
