@@ -18,11 +18,13 @@ void main() async {
     
     // Initialize App Check
     try {
-      await FirebaseAppCheck.instance.activate(
-        androidProvider: kReleaseMode ? AndroidProvider.playIntegrity : AndroidProvider.debug,
-        appleProvider: kReleaseMode ? AppleProvider.appAttest : AppleProvider.debug,
-        webProvider: ReCaptchaV3Provider('recaptcha-v3-site-key'),
-      );
+      if (!kIsWeb || kReleaseMode) {
+        await FirebaseAppCheck.instance.activate(
+          androidProvider: kReleaseMode ? AndroidProvider.playIntegrity : AndroidProvider.debug,
+          appleProvider: kReleaseMode ? AppleProvider.appAttest : AppleProvider.debug,
+          webProvider: ReCaptchaV3Provider('recaptcha-v3-site-key'),
+        );
+      }
     } catch (e) {
       DebugService.error("App Check init failed", e);
     }

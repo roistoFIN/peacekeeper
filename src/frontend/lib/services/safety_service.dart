@@ -13,7 +13,7 @@ class SafetyService {
 
     // 2. DEVELOPMENT (Debug Mode)
     if (kIsWeb) return 'http://127.0.0.1:8000';
-    if (Platform.isAndroid) return 'http://10.0.2.2:8000';
+    if (Platform.isAndroid) return 'https://peacekeeper-backend-c7fnii4s3a-uc.a.run.app';
     return 'http://127.0.0.1:8000';
   }
 
@@ -44,23 +44,40 @@ class SafetyService {
     }
   }
 
-  bool validateBlamePatterns(String text, List<dynamic>? patterns) {
-    if (patterns == null) return false;
-    for (final pattern in patterns) {
-      try {
-        var cleanPattern = pattern.toString();
-        bool ignoreCase = false;
-        if (cleanPattern.startsWith("(?i)")) {
-           ignoreCase = true;
-           cleanPattern = cleanPattern.substring(4);
+  bool validateLocalRules(String text, Map<String, dynamic>? rules) {
+    if (rules == null) return false;
+    
+    // 1. Regex Patterns
+    final patterns = rules['blame_patterns'] as List<dynamic>?;
+    if (patterns != null) {
+      for (final pattern in patterns) {
+        try {
+          var cleanPattern = pattern.toString();
+          bool ignoreCase = false;
+          if (cleanPattern.startsWith("(?i)")) {
+             ignoreCase = true;
+             cleanPattern = cleanPattern.substring(4);
+          }
+          if (RegExp(cleanPattern, caseSensitive: !ignoreCase).hasMatch(text)) {
+            return true;
+          }
+        } catch (e) {
+          DebugService.error("Invalid regex pattern: $pattern", e);
         }
-        if (RegExp(cleanPattern, caseSensitive: !ignoreCase).hasMatch(text)) {
-          return true;
-        }
-      } catch (e) {
-        DebugService.error("Invalid regex pattern: $pattern", e);
       }
     }
+
+    // 2. Violent Words
+    final violentWords = rules['violent_words'] as List<dynamic>?;
+    if (violentWords != null) {
+      for (final word in violentWords) {
+        final w = word.toString();
+        if (RegExp(r'\b' + RegExp.escape(w) + r'\b', caseSensitive: false).hasMatch(text)) {
+           return true;
+        }
+      }
+    }
+    
     return false;
   }
 }

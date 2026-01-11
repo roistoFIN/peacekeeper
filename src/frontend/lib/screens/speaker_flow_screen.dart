@@ -42,6 +42,10 @@ class _SpeakerFlowScreenState extends State<SpeakerFlowScreen> {
   
   String? _lastVettedText;
   String? _lastVettedRequest;
+  
+  // Selection State
+  String? _activeFeelingCategory;
+  String? _activeNeedCategory;
 
   // Instructions Data
   static const Map<String, Map<String, dynamic>> _stepInstructions = {
@@ -167,9 +171,20 @@ class _SpeakerFlowScreenState extends State<SpeakerFlowScreen> {
 
   Future<void> _loadData() async {
     final vocab = await _contentService.fetchVocabulary();
-    final uid = FirebaseAuth.instance.currentUser!.uid;
-    final userDoc = await FirebaseFirestore.instance.collection('sessions').doc(widget.sessionId).collection('participant_states').doc(uid).get();
-    final preSelectedEmotions = userDoc.exists ? List<String>.from(userDoc.data()?['emotions'] ?? []) : <String>[];
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    List<String> preSelectedEmotions = [];
+    
+    if (uid != null) {
+      try {
+        final userDoc = await FirebaseFirestore.instance.collection('sessions').doc(widget.sessionId).collection('participant_states').doc(uid).get();
+        if (userDoc.exists) {
+          preSelectedEmotions = List<String>.from(userDoc.data()?['emotions'] ?? []);
+        }
+      } catch (e) {
+        DebugService.error("Error fetching user session data", e);
+      }
+    }
+
     final premiumStatus = await SubscriptionService.isPremium();
     if (mounted) {
       setState(() { 
@@ -205,16 +220,12 @@ class _SpeakerFlowScreenState extends State<SpeakerFlowScreen> {
 
   bool _failsLocalValidation(String text) {
     final rules = _vocabulary['validation_rules'] as Map<String, dynamic>?;
-    if (rules == null) return false;
-    
-    final blamePatterns = rules['blame_patterns'] as List<dynamic>?;
-    return _safetyService.validateBlamePatterns(text, blamePatterns);
+    return _safetyService.validateLocalRules(text, rules);
   }
 
-  // --- AI Logic ---
   Future<bool> _neutralizeObservation() async {
     final currentText = _observationController.text.trim();
-    if (currentText.length < 5) return true;
+    if (currentText.isEmpty) return true;
     
     // 1. Premium User: AI Only
     if (_isPremium) {
@@ -273,7 +284,7 @@ class _SpeakerFlowScreenState extends State<SpeakerFlowScreen> {
 
   Future<bool> _refineRequest() async {
     final currentReq = _requestController.text.trim();
-    if (currentReq.length < 5) return true;
+    if (currentReq.isEmpty) return true;
     
     // 1. Premium User: AI Only
     if (_isPremium) {
@@ -356,8 +367,31 @@ class _SpeakerFlowScreenState extends State<SpeakerFlowScreen> {
             physics: const NeverScrollableScrollPhysics(),
             children: [
               _buildObservationStep(),
-              _buildSelectionStep(stepKey: 'feelings', title: "I feel...", dataKey: 'feelings', selectedItems: _selectedFeelings, aiSuggestions: _aiSuggestedFeelings, maxItems: 2, onContinue: _nextPage, showObs: true),
-              _buildSelectionStep(stepKey: 'needs', title: "Because I need...", dataKey: 'needs', selectedItems: _selectedNeeds, aiSuggestions: _aiSuggestedNeeds, maxItems: 2, onContinue: _nextPage, showObs: true, showFeelings: true),
+              _buildSelectionStep(
+                stepKey: 'feelings', 
+                title: "I feel...", 
+                dataKey: 'feelings', 
+                selectedItems: _selectedFeelings, 
+                aiSuggestions: _aiSuggestedFeelings, 
+                maxItems: 2, 
+                onContinue: _nextPage, 
+                showObs: true,
+                activeCategory: _activeFeelingCategory,
+                onCategorySelected: (cat) => setState(() => _activeFeelingCategory = cat),
+              ),
+              _buildSelectionStep(
+                stepKey: 'needs', 
+                title: "Because I need...", 
+                dataKey: 'needs', 
+                selectedItems: _selectedNeeds, 
+                aiSuggestions: _aiSuggestedNeeds, 
+                maxItems: 2, 
+                onContinue: _nextPage, 
+                showObs: true, 
+                showFeelings: true,
+                activeCategory: _activeNeedCategory,
+                onCategorySelected: (cat) => setState(() => _activeNeedCategory = cat),
+              ),
               _buildRequestStep(),
               _buildPreviewStep(),
             ],
@@ -552,9 +586,47 @@ class _SpeakerFlowScreenState extends State<SpeakerFlowScreen> {
     );
   }
 
-  Widget _buildSelectionStep({required String stepKey, required String title, required String dataKey, required List<String> selectedItems, required List<String> aiSuggestions, required int maxItems, required VoidCallback onContinue, bool showObs = false, bool showFeelings = false}) {
+  IconData _getIconForCategory(String? iconName) {
+    switch (iconName) {
+      case 'sentiment_satisfied_alt': return Icons.sentiment_satisfied_alt;
+      case 'sentiment_dissatisfied': return Icons.sentiment_dissatisfied;
+      case 'whatshot': return Icons.whatshot;
+      case 'error_outline': return Icons.error_outline;
+      case 'question_mark': return Icons.help_outline;
+      case 'fitness_center': return Icons.fitness_center;
+      case 'lightbulb': return Icons.lightbulb;
+      case 'spa': return Icons.spa;
+      case 'favorite': return Icons.favorite;
+      case 'group': return Icons.group;
+      case 'accessibility_new': return Icons.accessibility_new;
+      case 'verified': return Icons.verified;
+      case 'sports_esports': return Icons.sports_esports;
+      case 'landscape': return Icons.landscape;
+      case 'flight': return Icons.flight;
+      case 'stars': return Icons.stars;
+      default: return Icons.category;
+    }
+  }
+
+  Widget _buildSelectionStep({
+    required String stepKey, 
+    required String title, 
+    required String dataKey, 
+    required List<String> selectedItems, 
+    required List<String> aiSuggestions, 
+    required int maxItems, 
+    required VoidCallback onContinue, 
+    required String? activeCategory,
+    required Function(String?) onCategorySelected,
+    bool showObs = false, 
+    bool showFeelings = false
+  }) {
     final sectionData = _vocabulary[dataKey] as Map<String, dynamic>? ?? {};
     final categories = (sectionData['categories'] as List<dynamic>?) ?? [];
+    
+    // Combine selected items from all categories to show summary
+    // Actually selectedItems passed in is the master list.
+
     return SingleChildScrollView(
       padding: const EdgeInsets.all(24.0),
       child: Column(
@@ -575,6 +647,7 @@ class _SpeakerFlowScreenState extends State<SpeakerFlowScreen> {
           const SizedBox(height: 8),
           Text(_stepInstructions[stepKey]!['short']!, style: const TextStyle(fontSize: 14, color: Colors.black54)),
           const SizedBox(height: 16),
+          
           if (!_isPremium)
             Container(
               margin: const EdgeInsets.only(bottom: 24),
@@ -601,11 +674,63 @@ class _SpeakerFlowScreenState extends State<SpeakerFlowScreen> {
             Wrap(spacing: 8, children: aiSuggestions.map((s) => FilterChip(label: Text(s), selected: selectedItems.contains(s), onSelected: (val) { setState(() { if (val && selectedItems.length < maxItems) selectedItems.add(s); if (!val) selectedItems.remove(s); }); }, backgroundColor: Colors.blue.shade50)).toList()),
             const Divider(height: 32),
           ],
-          ...categories.map((cat) => Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            Text(cat['name'], style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w600)),
-            Wrap(spacing: 8, children: (cat['words'] as List).cast<String>().map((word) => FilterChip(label: Text(word), selected: selectedItems.contains(word), onSelected: (val) { setState(() { if (val && selectedItems.length < maxItems) selectedItems.add(word); if (!val) selectedItems.remove(word); }); })).toList()),
+
+          if (selectedItems.isNotEmpty) ...[
+             Text("Selected: ${selectedItems.join(', ')}", style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.green)),
+             const SizedBox(height: 16),
+          ],
+
+          if (activeCategory == null) ...[
+            const Text("Select a category:", style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+            const SizedBox(height: 12),
+            Wrap(
+              spacing: 12, runSpacing: 12,
+              children: categories.map((cat) {
+                final name = cat['name'] as String;
+                final iconName = cat['icon'] as String?;
+                return ActionChip(
+                  avatar: Icon(_getIconForCategory(iconName), size: 18),
+                  label: Text(name),
+                  onPressed: () => onCategorySelected(name),
+                  padding: const EdgeInsets.all(12),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                );
+              }).toList(),
+            ),
+          ] else ...[
+            Row(children: [
+               IconButton(
+                 icon: const Icon(Icons.arrow_back), 
+                 onPressed: () => onCategorySelected(null),
+                 padding: EdgeInsets.zero,
+                 constraints: const BoxConstraints(),
+               ),
+               const SizedBox(width: 12),
+               Text(activeCategory, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+            ]),
             const SizedBox(height: 16),
-          ])),
+            Builder(builder: (context) {
+               final cat = categories.firstWhere((c) => c['name'] == activeCategory, orElse: () => null);
+               if (cat == null) return const Text("Category not found");
+               final words = (cat['words'] as List).cast<String>();
+               return Wrap(
+                 spacing: 8, 
+                 runSpacing: 8,
+                 children: words.map((word) => FilterChip(
+                   label: Text(word), 
+                   selected: selectedItems.contains(word),
+                   onSelected: (val) {
+                      setState(() {
+                        if (val && selectedItems.length < maxItems) selectedItems.add(word);
+                        if (!val) selectedItems.remove(word);
+                      });
+                   }
+                 )).toList()
+               );
+            }),
+          ],
+
+          const SizedBox(height: 32),
           _buildStepButtons(onNext: onContinue, canProceed: selectedItems.isNotEmpty),
         ],
       ),
