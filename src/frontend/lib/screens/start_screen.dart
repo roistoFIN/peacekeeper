@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'dart:math';
 import 'session_creation_screen.dart';
 import 'join_session_screen.dart';
 import 'feedback_screen.dart';

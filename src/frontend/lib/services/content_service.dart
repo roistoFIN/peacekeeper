@@ -18,8 +18,6 @@ class ContentService {
     return 'http://127.0.0.1:8000';
   }
 
-  String? get _uid => FirebaseAuth.instance.currentUser?.uid;
-
   Future<Map<String, dynamic>> fetchVocabulary() async {
     try {
       final response = await http.get(Uri.parse('$_baseUrl/content/vocabulary'));
