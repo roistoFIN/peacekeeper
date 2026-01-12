@@ -210,6 +210,8 @@ class _GuidedExpressionScreenState extends State<GuidedExpressionScreen> {
         final participants = data['participants'] as List<dynamic>;
         final turnsCompleted = (data['turns_completed'] ?? 0) as int;
         final isSpeaker = _uid == currentSpeakerId;
+        
+        DebugService.info("GuidedExpression: Mode=${data['mode']}, UID=$_uid, Speaker=$currentSpeakerId, isSpeaker=$isSpeaker, Status=$sessionStatus");
 
         // Timer visibility: ONLY the active speaker sees the timer, and only during active expression
         final showTimer = isSpeaker && sessionStatus == 'expression_phase' && listenerStatus == 'ready';
@@ -263,22 +265,24 @@ class _GuidedExpressionScreenState extends State<GuidedExpressionScreen> {
   }
 
   Widget _buildContent(Map<String, dynamic> data, bool isSpeaker, String listenerStatus, String sessionStatus, String currentSpeakerId, List<dynamic> participants, int turnsCompleted) {
+    // 1. SOLO MODE OVERRIDE
+    if (data['mode'] == 'solo') {
+      if (sessionStatus == 'message_sent') {
+         DebugService.info("Solo mode message sent. Transitioning to shared_closing.");
+         FirebaseFirestore.instance.collection('sessions').doc(widget.sessionId).update({'status': 'shared_closing'});
+         return const Center(child: CircularProgressIndicator());
+      }
+      return SpeakerFlowScreen(sessionId: widget.sessionId);
+    }
+
+    // 2. SHARED MODE LOGIC
     if (sessionStatus == 'turn_complete') {
       return _buildTurnCompleteView(currentSpeakerId, participants, turnsCompleted);
     }
 
     if (isSpeaker) {
       if (sessionStatus == 'message_sent') {
-        // In Solo mode, go to closing screen after sharing
-        if (data['mode'] == 'solo') {
-           FirebaseFirestore.instance.collection('sessions').doc(widget.sessionId).update({'status': 'shared_closing'});
-           return const Center(child: CircularProgressIndicator());
-        }
         return const Center(child: Text("Waiting for partner to reflect..."));
-      }
-      
-      if (data['mode'] == 'solo') {
-        return SpeakerFlowScreen(sessionId: widget.sessionId);
       }
       return _buildSpeakerView(listenerStatus);
     } else {
