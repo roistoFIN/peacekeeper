@@ -54,3 +54,24 @@ flutter test
 
 ### Known Limitations
 - **Firestore:** Deep integration tests involving complex Firestore data streams are currently limited due to the complexity of mocking binary Pigeon streams. These are covered by manual testing (see `docs/DEPLOYMENT.md`).
+
+## Manual System Testing
+
+Since some flows involve complex backend interactions (AI, Firestore real-time updates), manual verification is required for:
+
+### 1. Solo Mode Flow
+1.  Launch the app.
+2.  Tap **"Guide me to express..."**.
+3.  Complete the **Regulation (Breathing)** phase.
+4.  Proceed to **Observation**.
+5.  Complete the flow (Observation -> Feeling -> Need -> Request).
+6.  Click **"I have shared this"**.
+7.  **Verify:** The app should navigate to the **Shared Closing Screen** (Summary) and **not** hang on "Waiting for partner...".
+
+### 2. Violent Language Validation (Free User)
+1.  Launch the app as a free user.
+2.  Enter Step 1 (Observation).
+3.  Type a violent word (e.g., "idiot").
+4.  **Verify:** The "Next" button disables, and a red warning ("This language seems judgmental") appears.
+5.  Change the text to something neutral.
+6.  **Verify:** The "Next" button re-enables.
