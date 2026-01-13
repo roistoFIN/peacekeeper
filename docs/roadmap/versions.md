@@ -1,49 +1,39 @@
-## Features of the Versions 
+# Version Roadmap
 
-### Version 0.1
+## Version 0.1 (MVP) - ✅ Completed
 
-* English version
-* Free of use
-* No saved data
-* Start screen with pair and sigle mode
-* 6-digit conflict code generation & wait screen
-* Joining screen with 6-digit code input
-* Breathing countdown screen
-* Emotion selection screen
-* Ready to listen screen
-* Waiting other to be ready to listen screen
-* Observation screen
-* Emotion screen
-* Need screen
-* Request screen
-* Preview screen
-* Reflection screen
-* Change turns (screen?)
-* Shared closing screen
-* Session ending
-* Disclaimer at the beginning (not therapy, methods used)
-* Instructions not to speak/yell but rather use the app to help to do constructing conversation
-* AI helping behind paywall
-* Ads and their removal behind paywall
-* Android
+**Status:** Ready for Testing / Alpha Release.
 
-## Version 0.2
+### Implemented Features
+*   **Authentication:** Anonymous Login via Firebase.
+*   **Modes:** Solo (Self-Guided) and Shared (SOS Pair).
+*   **Session Management:** 6-digit Code Pairing, Real-time Status Sync.
+*   **Regulation:** Synchronized Breathing Timer (60s).
+*   **Expression Flow:**
+    *   Observation (Neutrality Check).
+    *   Feelings (Categorized Selection).
+    *   Needs (Categorized Selection).
+    *   Request (Actionable Check).
+*   **Safety:**
+    *   Client-side Regex validation for violent words/blame.
+    *   Visual Feedback for blocked inputs.
+*   **AI Integration:**
+    *   Neutralization & Reflection (Premium).
+    *   Semantic Caching via Firestore.
+*   **Monetization:**
+    *   RevenueCat Paywall (Subscriptions).
+    *   AdMob Banners (Free Tier).
 
-* Multilanguage
-* QR code joining
-* Personal user accounts
-* Inviting a partner to the app (quick access)
-* Chatbot
-* History data:
-  * Emotion tracking
-  * Pattern recognition
-  * Personalization
-* Couple profile
-* SOS button for established partners triggering a **20-minute nervous system reset**
-* Mood scale (0–10) before and after sessions
-* AI-based pattern detection for recurring conflict themes
-* Voice and wearable integration (Apple Watch / Garmin):
-  * Automatic pause suggestion when heart rate exceeds a threshold
-* Long-term analytics:
-  * Visualization of reduced *conflict recovery time* over time
-* Android + ios
+---
+
+## Version 0.2 (Next Phase)
+
+**Focus:** Retention, Personalization, and Growth.
+
+### Planned Features
+*   **Accounts:** Permanent User Profiles (Email/Google Sign-in).
+*   **History:** Save past sessions and track emotional trends.
+*   **QR Code Joining:** Faster pairing.
+*   **Localization:** Multi-language support (Spanish, French).
+*   **Smart Patterns:** AI analysis of recurring conflict themes ("You often feel ignored when...").
+*   **Wearable Integration:** Heart-rate based "Time-out" prompts.

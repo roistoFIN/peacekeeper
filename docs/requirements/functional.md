@@ -1,6 +1,6 @@
 # Functional Requirements: Peacekeeper
 
-## Version 0.1+ Core User Flows
+## Version 0.1 Core User Flows
 
 ### 1. Start Screen
 - **Action A: SOS - Conflict happening now** (Starts shared session).
@@ -15,10 +15,12 @@
 
 ### 3. Session Phase 2: Expression (4-Step Wizard)
 - **Step 1 (Observation):** "When [Action]..."
-- **Step 2 (Feeling):** "I feel [Emotion]..."
-- **Step 3 (Need):** "...because I need [Need]."
+- **Step 2 (Feeling):** "I feel [Emotion]..." (Categorized Chips).
+- **Step 3 (Need):** "...because I need [Need]." (Categorized Chips).
 - **Step 4 (Request):** "Would you be willing to [Action]?"
-- **Contextual Help:** Every step includes an (i) icon explaining "Impulsive vs. NVC" phrasing.
+- **Validation:**
+    - **Free Users:** Local Regex checks for violent words/blame.
+    - **Premium Users:** AI-powered neutrality analysis.
 
 ### 4. Session Phase 3: Reflection (Listener Side)
 - **Coaching:** AI generates a role-reversed reflection statement.
@@ -30,11 +32,12 @@
 - **Feedback:** 1-star ratings automatically prompt a "What went wrong?" feedback form.
 - **Ads:** Free users see a Google Ad banner above the final exit button.
 
-## Monetization Rules
+## Monetization Rules (Implemented)
 
 | Feature | Free Tier | Premium Tier |
 | :--- | :--- | :--- |
-| AI Guidance | Fixed template responses | Personalized Gemini suggestions |
-| Language Validation | No AI validation | Real-time judgment detection |
-| Ad Experience | Ad-supported (Closing) | Ad-free |
-| SOS Capacity | Limited | Unlimited |
+| **Input Validation** | Local Regex (Violent words/Blame) | AI Analysis (Tone, Sarcasm, NVC) |
+| **Suggestions** | Static list only | AI-powered "Better Phrasing" |
+| **Reflection** | Fixed Template | AI-generated empathetic reflection |
+| **Ads** | Banner Ad on Closing Screen | No Ads |
+| **Vocabulary** | Full Access | Full Access |
