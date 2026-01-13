@@ -2,6 +2,85 @@
 
 The Peacekeeper architecture follows a "scale-to-zero" principle, optimized for Google Cloud Platform (GCP). It is designed to minimize latency during high-stress user interactions.
 
+## Visual Architecture
+
+### High-Level Component Diagram
+```mermaid
+graph TB
+    UserA((User A))
+    UserB((User B))
+
+    subgraph Client_Layer [Frontend: Flutter]
+        App[Peacekeeper Mobile/Web]
+    end
+
+    subgraph Logic_Layer [Backend: FastAPI on Cloud Run]
+        API[API Gateway]
+        Cache[(Response Cache)]
+    end
+
+    subgraph Intelligence_Layer [AI: Vertex AI]
+        Gemini[[Gemini 2.5 Flash Lite]]
+    end
+
+    subgraph Data_Layer [State: Firebase]
+        Auth[Anonymous Auth]
+        DB[(Firestore Real-time DB)]
+    end
+
+    subgraph External_Services
+        RC[RevenueCat]
+        AdMob[Google AdMob]
+    end
+
+    UserA <--> App
+    UserB <--> App
+    App <-->|gRPC Snapshots| DB
+    App <-->|REST/HTTPS| API
+    App -->|Verify| Auth
+    API -->|Prompting| Gemini
+    API <-->|Lookup| Cache
+    App -->|Subscription| RC
+    App -->|Ads| AdMob
+```
+
+### 5-Phase Session Flow (Real-time Sync)
+```mermaid
+sequenceDiagram
+    participant A as User A (Initiator)
+    participant FS as Firestore (State Machine)
+    participant API as Backend (AI Engine)
+    participant B as User B (Joiner)
+
+    Note over A, B: Phase 1: Regulation (Breathing)
+    A->>FS: Create Session (Status: Waiting)
+    B->>FS: Join Session (Status: Active)
+    A->>A: 60s Breathing
+    B->>B: 60s Breathing
+    A->>FS: Ready
+    B->>FS: Ready
+    
+    Note over A, B: Phase 2: Guided Expression
+    FS->>A: Start Turn (Speaker)
+    FS->>B: Start Turn (Listener)
+    A->>API: Validate Observation (Regex/AI)
+    API-->>A: Neutral Alternatives
+    A->>FS: Send Message (Step 1-4)
+
+    Note over A, B: Phase 3: Empathetic Reflection
+    FS->>B: New Message Received
+    B->>API: Generate Reflection
+    API-->>B: Coaching Statement
+    B->>B: Read Aloud & Confirm
+
+    Note over A, B: Phase 4: Role Reversal / Closing
+    Note right of FS: Optional: Swap Turns
+    A->>FS: Rate Session
+    B->>FS: Rate Session
+    FS-->>A: Show Summary & Ads
+    FS-->>B: Show Summary & Ads
+```
+
 ## Architectural Layers
 
 ### 1. Orchestration Layer (Firebase)
